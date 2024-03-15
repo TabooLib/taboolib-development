@@ -1,4 +1,4 @@
-package org.tabooproject.intellij.components
+package org.tabooproject.intellij.component
 
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.AddDeleteListPanel

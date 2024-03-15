@@ -1,11 +1,8 @@
-package org.tabooproject.intellij
+package org.tabooproject.intellij.step
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
-import com.intellij.openapi.ui.Messages
-import com.intellij.ui.AddDeleteListPanel
 import com.intellij.ui.dsl.builder.*
-import org.tabooproject.intellij.components.AddDeleteStringListPanel
-import org.tabooproject.intellij.util.Assets
+import org.tabooproject.intellij.component.AddDeleteStringListPanel
 import javax.swing.JComponent
 
 data class OptionalProperty(

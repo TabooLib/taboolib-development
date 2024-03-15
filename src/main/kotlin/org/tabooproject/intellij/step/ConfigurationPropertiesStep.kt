@@ -1,4 +1,4 @@
-package org.tabooproject.intellij
+package org.tabooproject.intellij.step
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ui.dsl.builder.bindText
@@ -56,11 +56,11 @@ class ConfigurationPropertiesStep : ModuleWizardStep() {
 
     companion object {
 
-        var configuration = ConfigurationProperty()
+        var property = ConfigurationProperty()
             private set
 
         fun refreshTemporaryData() {
-            configuration = ConfigurationProperty()
+            property = ConfigurationProperty()
         }
     }
 
@@ -71,12 +71,12 @@ class ConfigurationPropertiesStep : ModuleWizardStep() {
                     row("Plugin name:") {
                         textField()
                             .comment("The name of the plugin")
-                            .bindText(configuration::name)
+                            .bindText(property::name)
                     }
                     row("Plugin main class:") {
                         textField()
                             .comment("The main class of the plugin")
-                            .bindText(configuration::mainClass)
+                            .bindText(property::mainClass)
                     }
                     row("Modules:") {
                         MODULE_GROUPS.forEach { group ->
@@ -88,10 +88,10 @@ class ConfigurationPropertiesStep : ModuleWizardStep() {
                                     row {
                                         checkBox(module).apply {
                                             // 设置初始选中状态
-                                            component.isSelected = configuration.modules.getOrDefault(module, false)
+                                            component.isSelected = property.modules.getOrDefault(module, false)
                                             // 绑定复选框的状态到映射
                                             component.addActionListener {
-                                                configuration.modules[module] = component.isSelected
+                                                property.modules[module] = component.isSelected
                                             }
                                             comment("测试信息")
                                         }

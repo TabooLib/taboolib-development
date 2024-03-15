@@ -2,6 +2,7 @@ plugins {
     id("java")
     id("org.jetbrains.kotlin.jvm") version "1.9.20"
     id("org.jetbrains.intellij") version "1.17.2"
+    id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
 group = "org.tabooproject.intellij"
@@ -11,8 +12,12 @@ repositories {
     mavenCentral()
 }
 
-// Configure Gradle IntelliJ Plugin
-// Read more: https://plugins.jetbrains.com/docs/intellij/tools-gradle-intellij-plugin.html
+dependencies {
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("org.freemarker:freemarker:2.3.32")
+}
+
+
 intellij {
     version.set("2023.1.5")
 
@@ -36,7 +41,11 @@ kotlin {
 
 
 tasks {
-    // Set the JVM compatibility versions
+    shadowJar {
+        archiveClassifier.set("all")
+        relocate("org.freemarker", "org.tabooproject.intellij.freemarker")
+    }
+
     withType<JavaCompile> {
         sourceCompatibility = "17"
         targetCompatibility = "17"

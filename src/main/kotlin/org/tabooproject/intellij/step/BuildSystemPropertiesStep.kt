@@ -1,4 +1,4 @@
-package org.tabooproject.intellij
+package org.tabooproject.intellij.step
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ui.dsl.builder.bindText
