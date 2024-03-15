@@ -1,16 +1,12 @@
 package org.tabooproject.intellij
 
-import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.ide.wizard.*
-import com.intellij.openapi.module.ModuleType
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider
 import org.tabooproject.intellij.util.Assets
 import org.tabooproject.intellij.util.NewProjectWizardChainStep.Companion.nextStep
 import javax.swing.Icon
-import javax.swing.JComponent
-import javax.swing.JLabel
 
 
 class TModuleBuilder : AbstractNewProjectWizardBuilder() {
@@ -43,12 +39,7 @@ class TModuleBuilder : AbstractNewProjectWizardBuilder() {
     }
 
     override fun createWizardSteps(wizardContext: WizardContext, modulesProvider: ModulesProvider): Array<ModuleWizardStep> {
-        return arrayOf(object : ModuleWizardStep() {
-            override fun getComponent(): JComponent {
-                return JLabel("Put your content here")
-            }
-
-            override fun updateDataModel() {}
-        })
+        ConfigurationPropertiesStep.refreshTemporaryData()
+        return arrayOf(ConfigurationPropertiesStep())
     }
 }

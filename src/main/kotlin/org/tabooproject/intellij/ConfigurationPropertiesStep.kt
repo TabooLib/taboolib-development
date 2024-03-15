@@ -1,18 +1,22 @@
 package org.tabooproject.intellij
 
-import com.intellij.ide.wizard.AbstractNewProjectWizardStep
-import com.intellij.ide.wizard.NewProjectWizardStep
-import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
-import com.intellij.ui.dsl.builder.Panel
+import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ui.dsl.builder.bindText
-import com.intellij.ui.dsl.builder.columns
+import com.intellij.ui.dsl.builder.panel
+import javax.swing.JComponent
+
+data class PluginConfiguration(
+    var name: String,
+    var mainClass: String,
+    val modules: MutableMap<String, Boolean> = mutableMapOf(),
+)
 
 data class ModuleGroup(val name: String, val modules: List<String>)
 
 val MODULE_GROUPS = listOf(
-    ModuleGroup("Platform:", listOf("application", "bukkit", "bungee")),
+    ModuleGroup("Platform", listOf("application", "bukkit", "bungee")),
     ModuleGroup(
-        "Standard:",
+        "Standard",
         listOf(
             "ai",
             "chat",
@@ -29,37 +33,59 @@ val MODULE_GROUPS = listOf(
             "ui"
         )
     ),
-    ModuleGroup("Expansion:", listOf("alkaid-redis", "command-helper", "javascript", "persistent-container", "player-database"))
+    ModuleGroup("Expansion", listOf("alkaid-redis", "command-helper", "javascript", "persistent-container", "player-database"))
 )
 
-class ConfigurationPropertiesStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(parent) {
+class ConfigurationPropertiesStep : ModuleWizardStep() {
 
-    val pluginNameProperty = propertyGraph.property("untitled")
-    val pluginMainClassPath = propertyGraph.property("org.example.untitled.UntitledPlugin")
+    companion object {
 
-    override fun setupUI(builder: Panel) {
-        builder.group("Plugin Properties") {
-            // 插件名
-            row("Plugin name:") {
-                textField()
-                    .bindText(pluginNameProperty)
-                    .columns(COLUMNS_MEDIUM)
-            }
-            // 主类名
-            row("Main class path:") {
-                textField()
-                    .bindText(pluginMainClassPath)
-                    .columns(COLUMNS_MEDIUM)
-            }
-            row("Modules:") {
-                MODULE_GROUPS.forEach { group ->
-                    panel {
-                        row {
-                            label(group.name)
-                        }
-                        group.modules.forEach { module ->
+        private const val DEFAULT_NAME = "untitled"
+        private const val DEFAULT_MAIN_CLASS = "org.example.untitled.UntitledPlugin"
+
+        val configuration = PluginConfiguration(
+            DEFAULT_NAME,
+            DEFAULT_MAIN_CLASS
+        )
+
+        fun refreshTemporaryData() {
+            configuration.modules.clear()
+            configuration.name = DEFAULT_NAME
+            configuration.mainClass = DEFAULT_MAIN_CLASS
+        }
+    }
+
+    override fun getComponent(): JComponent {
+        return panel {
+            indent {
+                row("Plugin name:") {
+                    textField()
+                        .comment("The name of the plugin")
+                        .bindText(configuration::name)
+                }
+                row("Plugin main class:") {
+                    textField()
+                        .comment("The main class of the plugin")
+                        .bindText(configuration::mainClass)
+                }
+                row("Modules:") {
+                    MODULE_GROUPS.forEach { group ->
+                        panel {
                             row {
-                                checkBox(module).comment("这是一条测试")
+                                label(group.name)
+                            }
+                            group.modules.forEach { module ->
+                                row {
+                                    checkBox(module).apply {
+                                        // 设置初始选中状态
+                                        component.isSelected = configuration.modules.getOrDefault(module, false)
+                                        // 绑定复选框的状态到映射
+                                        component.addActionListener {
+                                            configuration.modules[module] = component.isSelected
+                                        }
+                                        comment("测试信息")
+                                    }
+                                }
                             }
                         }
                     }
@@ -67,4 +93,6 @@ class ConfigurationPropertiesStep(parent: NewProjectWizardStep) : AbstractNewPro
             }
         }
     }
+
+    override fun updateDataModel() = Unit
 }
