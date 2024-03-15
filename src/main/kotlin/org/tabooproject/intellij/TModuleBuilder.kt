@@ -40,6 +40,8 @@ class TModuleBuilder : AbstractNewProjectWizardBuilder() {
 
     override fun createWizardSteps(wizardContext: WizardContext, modulesProvider: ModulesProvider): Array<ModuleWizardStep> {
         ConfigurationPropertiesStep.refreshTemporaryData()
-        return arrayOf(ConfigurationPropertiesStep())
+        OptionalPropertiesStep.refreshTemporaryData()
+        BuildSystemPropertiesStep.refreshTemporaryData()
+        return arrayOf(ConfigurationPropertiesStep(), OptionalPropertiesStep(), BuildSystemPropertiesStep(), TempStep())
     }
 }

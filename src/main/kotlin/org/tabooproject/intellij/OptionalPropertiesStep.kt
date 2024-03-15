@@ -1,81 +1,76 @@
 package org.tabooproject.intellij
 
-import com.intellij.ide.wizard.AbstractNewProjectWizardStep
-import com.intellij.ide.wizard.NewProjectWizardStep
-import com.intellij.openapi.observable.util.bind
-import com.intellij.openapi.project.Project
+import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.AddDeleteListPanel
-import com.intellij.ui.AddEditDeleteListPanel
-import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
-import com.intellij.ui.dsl.builder.Panel
-import com.intellij.ui.dsl.builder.bindText
-import com.intellij.ui.dsl.builder.columns
+import com.intellij.ui.dsl.builder.*
+import org.tabooproject.intellij.components.AddDeleteStringListPanel
 import org.tabooproject.intellij.util.Assets
-import javax.swing.DefaultListModel
+import javax.swing.JComponent
 
-class OptionalPropertiesStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(parent) {
+data class OptionalProperty(
+    var description: String = "",
+    val authors: MutableList<String> = mutableListOf(),
+    var website: String = "",
+    val depends: MutableList<String> = mutableListOf(),
+    val softDepends: MutableList<String> = mutableListOf(),
+)
 
-    val pluginDescriptionProperty = propertyGraph.property("")
-    val authorProperty = propertyGraph.property(mutableListOf<String>())
-    val websiteProperty = propertyGraph.property("")
-    val dependsProperty = propertyGraph.property(mutableListOf<String>())
-    val softDependsProperty = propertyGraph.property(mutableListOf<String>())
+class OptionalPropertiesStep : ModuleWizardStep() {
 
-    override fun setupUI(builder: Panel) {
-        builder.group("Optional Plugin Properties") {
-            row("Description") {
-                textField()
-                    .bindText(pluginDescriptionProperty)
-                    .columns(COLUMNS_MEDIUM)
-            }
-            row("Author") {
-                val authorsPanel = object : AddDeleteListPanel<String>("Authors", authorProperty.get()) {
-                    override fun findItemToAdd(): String? {
-                        return Messages.showInputDialog(
-                            "Enter author name:",
-                            "Add Author",
-                            Assets.TABOO_16x16,
-                            "",
-                            null
-                        )
+    private val authorsPanel = AddDeleteStringListPanel("Authors", property.authors, "Author", "Add Author")
+    private val dependsPanel = AddDeleteStringListPanel("Depends", property.depends, "Depend", "Add Depend")
+    private val softDependsPanel = AddDeleteStringListPanel("Soft depends", property.softDepends, "Soft Depend", "Add Soft Depend")
+
+    companion object {
+
+        var property = OptionalProperty()
+            private set
+
+        fun refreshTemporaryData() {
+            property = OptionalProperty()
+        }
+    }
+
+    override fun getComponent(): JComponent {
+        return panel {
+            indent {
+                group("Optional Properties", indent = true) {
+                    row("Description:") {
+                        textField()
+                            .bindText(property::description)
+                    }
+                    row("Author:") {
+                        cell(authorsPanel)
+                    }
+                    row("Website:") {
+                        textField()
+                            .bindText(property::website)
+                    }
+                    row("Depends:") {
+                        cell(dependsPanel)
+                    }
+                    row("Soft Depends:") {
+                        cell(softDependsPanel)
                     }
                 }
-                cell(authorsPanel)
             }
-            row("Website") {
-                textField()
-                    .bindText(websiteProperty)
-                    .columns(COLUMNS_MEDIUM)
-            }
-            row("Depends") {
-                val dependsPanel = object : AddDeleteListPanel<String>("Depends", dependsProperty.get()) {
-                    override fun findItemToAdd(): String? {
-                        return Messages.showInputDialog(
-                            "Enter plugin name:",
-                            "Add Depends",
-                            Assets.TABOO_16x16,
-                            "",
-                            null
-                        )
-                    }
-                }
-                cell(dependsPanel)
-            }
-            row("Soft Depends") {
-                val softDependsPanel = object : AddDeleteListPanel<String>("Soft depends", softDependsProperty.get()) {
-                    override fun findItemToAdd(): String? {
-                        return Messages.showInputDialog(
-                            "Enter plugin name:",
-                            "Add Soft Depends",
-                            Assets.TABOO_16x16,
-                            "",
-                            null
-                        )
-                    }
-                }
-                cell(softDependsPanel)
-            }
+        }
+    }
+
+    override fun updateDataModel() {
+        // 针对控件数据 (AddDeleteListPanel) 无法直接绑定到数据模型的问题，手动导出数据
+        property.authors.apply {
+            clear()
+            addAll(authorsPanel.export())
+        }
+        property.depends.apply {
+            clear()
+            addAll(dependsPanel.export())
+        }
+        property.softDepends.apply {
+            clear()
+            addAll(softDependsPanel.export())
         }
     }
 }

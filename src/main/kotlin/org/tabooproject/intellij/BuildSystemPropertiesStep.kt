@@ -1,47 +1,48 @@
 package org.tabooproject.intellij
 
-import com.intellij.ide.wizard.AbstractNewProjectWizardStep
-import com.intellij.ide.wizard.NewProjectWizardBaseData.Companion.baseData
-import com.intellij.ide.wizard.NewProjectWizardStep
-import com.intellij.openapi.observable.util.bindStorage
-import com.intellij.ui.dsl.builder.COLUMNS_MEDIUM
-import com.intellij.ui.dsl.builder.Panel
+import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ui.dsl.builder.bindText
-import com.intellij.ui.dsl.builder.columns
+import com.intellij.ui.dsl.builder.panel
+import javax.swing.JComponent
 
-class BuildSystemPropertiesStep(parent: NewProjectWizardStep) : AbstractNewProjectWizardStep(parent) {
+class BuildProperty(
+    var groupId: String = "org.example",
+    var artifactId: String = "untitled",
+    var version: String = "1.0.0",
+)
 
-    val groupIdProperty = propertyGraph.property("org.example")
+class BuildSystemPropertiesStep : ModuleWizardStep()  {
 
-    val artifactIdProperty = propertyGraph.lazyProperty { parent.baseData!!.name }
+    companion object {
 
-    val versionProperty = propertyGraph.property("1.0-SNAPSHOT")
+        var property = BuildProperty()
+            private set
 
-    var groupId by groupIdProperty
-    var artifactId by artifactIdProperty
-    var version by versionProperty
-
-    init {
-        artifactIdProperty.dependsOn(parent.baseData!!.nameProperty, ::artifactId)
+        fun refreshTemporaryData() {
+            property = BuildProperty()
+        }
     }
 
-    override fun setupUI(builder: Panel) {
-        builder.group("Build System Properties") {
-            row("Group ID:") {
-                textField()
-                    .bindText(groupIdProperty)
-                    .columns(COLUMNS_MEDIUM)
-            }
-            row("Artifact ID:") {
-                textField()
-                    .bindText(artifactIdProperty)
-                    .columns(COLUMNS_MEDIUM)
-            }
-            row("Version:") {
-                textField()
-                    .bindText(versionProperty)
-                    .columns(COLUMNS_MEDIUM)
+    override fun getComponent(): JComponent {
+        return panel {
+            indent {
+                group("Build System Properties", indent = true) {
+                    row("Group ID:") {
+                        textField()
+                            .bindText(property::groupId)
+                    }
+                    row("Artifact ID:") {
+                        textField()
+                            .bindText(property::artifactId)
+                    }
+                    row("Version:") {
+                        textField()
+                            .bindText(property::version)
+                    }
+                }
             }
         }
     }
+
+    override fun updateDataModel() = Unit
 }
