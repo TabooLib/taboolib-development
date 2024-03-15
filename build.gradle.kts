@@ -44,6 +44,7 @@ tasks {
     shadowJar {
         archiveClassifier.set("all")
         relocate("org.freemarker", "org.tabooproject.intellij.freemarker")
+        relocate("okhttp3", "org.tabooproject.intellij.okhttp3")
     }
 
     withType<JavaCompile> {

@@ -7,13 +7,11 @@ import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.ide.wizard.*
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider
-import com.intellij.openapi.util.io.FileUtil
 import org.tabooproject.intellij.step.BuildSystemPropertiesStep
 import org.tabooproject.intellij.step.ConfigurationPropertiesStep
 import org.tabooproject.intellij.step.OptionalPropertiesStep
 import org.tabooproject.intellij.util.Assets
 import org.tabooproject.intellij.util.NewProjectWizardChainStep.Companion.nextStep
-import java.io.File
 import javax.swing.Icon
 
 
@@ -43,6 +41,22 @@ class ModuleBuilder : AbstractNewProjectWizardBuilder() {
 
                     override fun setupAssets(project: Project) {
                         addAssets(StandardAssetsProvider().getGradlewAssets())
+                        val directory = project.basePath!!
+                        listOf(
+                            Template.WORKFLOW_YML,
+                            Template.GITIGNORE,
+                            Template.LICENSE,
+                            Template.README,
+                            Template.BUILD_GRADLE_KTS,
+                            Template.GRADLE_WRAPPER_PROPERTIES,
+                            Template.MAIN_PLUGIN_KT,
+                            Template.GRADLE_PROPERTY,
+                            Template.SETTINGS_GRADLE
+                        ).forEach { template ->
+                            createFileWithDirectories(directory, template.node).also { file ->
+                                Template.extract(template, file?.toFile() ?: return)
+                            }
+                        }
                     }
                 }
             }
