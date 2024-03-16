@@ -1,4 +1,4 @@
-package org.tabooproject.intellij.step
+package org.tabooproject.intellij.util
 
 val LOCAL_MODULES = listOf(
     "CHAT",
