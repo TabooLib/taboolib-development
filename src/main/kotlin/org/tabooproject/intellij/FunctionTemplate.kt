@@ -18,9 +18,9 @@ object FunctionTemplate {
             // 版本
             put("version", configProperty.version)
             // 模块列表
-            put("modules", configProperty.modules.map { it.name })
+            put("modules", configProperty.modules.map { it })
             // 从模块构建额外 imports
-            put("extraPackages", configProperty.modules.map { "import io.izzel.taboolib.gradle.${it.name}" })
+            put("extraPackages", configProperty.modules.map { "import io.izzel.taboolib.gradle.${it}" })
             val optionalProperty = OptionalPropertiesStep.property
             // 插件描述
             put("description", optionalProperty.description)

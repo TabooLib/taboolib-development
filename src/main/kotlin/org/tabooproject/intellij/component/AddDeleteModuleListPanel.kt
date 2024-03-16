@@ -2,13 +2,13 @@ package org.tabooproject.intellij.component
 
 import com.intellij.ui.AddDeleteListPanel
 import org.jetbrains.kotlin.utils.addToStdlib.ifFalse
-import org.tabooproject.intellij.step.Module
+import org.tabooproject.intellij.step.MODULES
 
 class AddDeleteModuleListPanel(
     title: String,
-    initial: List<Module>,
-    defaultHeight: Int = 175
-) : AddDeleteListPanel<Module>(title, initial) {
+    initial: List<String>,
+    defaultHeight: Int = 175,
+) : AddDeleteListPanel<String>(title, initial) {
 
     init {
         preferredSize = preferredSize.apply {
@@ -17,15 +17,14 @@ class AddDeleteModuleListPanel(
         }
     }
 
-    override fun findItemToAdd(): Module? {
-        val dialog = SelectBoxDialog("Add Module", "Choose a module:", Module.values()
+    override fun findItemToAdd(): String? {
+        val dialog = SelectBoxDialog("Add Module", "Choose a module:", MODULES
             .filter { it !in listItems }
-            .map { it.name }
             .toTypedArray()
         )
         dialog.showAndGet().ifFalse { return null }
-        return Module.valueOf(dialog.getSelectedOption()!!)
+        return MODULES.firstOrNull { it == dialog.getSelectedOption() }
     }
 
-    fun export() = listItems.map { it as Module }
+    fun export(): List<String> = listItems.map { it as String }
 }

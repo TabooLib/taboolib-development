@@ -2,52 +2,57 @@ package org.tabooproject.intellij.step
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ui.dsl.builder.panel
+import okhttp3.OkHttpClient
 import org.tabooproject.intellij.component.AddDeleteModuleListPanel
+import org.tabooproject.intellij.getRequest
+import java.io.IOException
 import javax.swing.JComponent
 
-enum class Module {
-    AI,
-    APPLICATION,
-    BUKKIT,
-    BUKKIT_ALL,
-    BUKKIT_HOOK,
-    BUKKIT_UTIL,
-    BUKKIT_XSERIES,
-    BUNGEE,
-    CHAT,
-    CONFIGURATION,
-    DATABASE,
-    EFFECT,
-    EXPANSION_COMMAND_HELPER,
-    EXPANSION_FOLIA,
-    EXPANSION_GEEK_TOOL,
-    EXPANSION_IOC,
-    EXPANSION_JAVASCRIPT,
-    EXPANSION_LANG_TOOL,
-    EXPANSION_PLAYER_DATABASE,
-    EXPANSION_PLAYER_FAKE_OP,
-    EXPANSION_PTC,
-    EXPANSION_PTC_OBJECT,
-    EXPANSION_REDIS,
-    EXPANSION_SUBMIT_CHAIN,
-    KETHER,
-    LANG,
-    METRICS,
-    NAVIGATION,
-    NMS,
-    NMS_UTIL,
-    PORTICUS,
-    UI,
-    UNIVERSAL,
-    UNIVERSAL_DATABASE,
-    VELOCITY
+private fun fetchAndParseModules(
+    url: String = "https://raw.githubusercontent.com/TabooLib/taboolib-gradle-plugin/master/src/main/kotlin/io/izzel/taboolib/gradle/Standards.kt",
+): List<String>? {
+    val client = OkHttpClient()
+    val request = getRequest(url)
+
+    return try {
+        val response = client.newCall(request).execute()
+        response.body?.string()?.let { responseBody ->
+            parseModules(responseBody)
+        }
+    } catch (e: IOException) {
+        e.printStackTrace()
+        null
+    }
 }
+
+fun parseModules(content: String): List<String> {
+    val pattern = """val (\w+) =""".toRegex()
+    return pattern.findAll(content)
+        .mapNotNull { matchResult ->
+            val id = matchResult.groupValues[1]
+            id.ifBlank { null }
+        }
+        .toList()
+}
+
+val MODULES: List<String> by lazy {
+    fetchAndParseModules() ?: error("Failed to fetch modules")
+}
+
+val TEMPLATE_DOWNLOAD_MIRROR = mapOf(
+    "GitHub" to "https://github.com/TabooLib/taboolib-sdk/archive/refs/heads/idea-template.zip",
+    "Aliyun" to "https://template.tabooproject.org"
+)
 
 data class ConfigurationProperty(
     var name: String = "untitled",
     var mainClass: String = "org.example.untitled.UntitledPlugin",
     var version: String = "1.0-SNAPSHOT",
-    val modules: MutableList<Module> = mutableListOf(Module.UNIVERSAL, Module.BUKKIT_ALL),
+    var mirrorIndex: String = "GitHub",
+    val modules: MutableList<String> = mutableListOf<String>().apply {
+        add("UNIVERSAL")
+        add("BUKKIT_ALL")
+    },
 )
 
 class ConfigurationPropertiesStep : ModuleWizardStep() {
@@ -93,6 +98,15 @@ class ConfigurationPropertiesStep : ModuleWizardStep() {
                     row { text("") }
                     row {
                         cell(modulePanel)
+                    }
+                    row { text("") }
+                    row("Select template download mirror:") {
+                        comboBox(TEMPLATE_DOWNLOAD_MIRROR.keys)
+                            .apply {
+                                component.selectedIndex = 0
+                            }.onChanged {
+                                property.mirrorIndex = it.selectedItem as String
+                            }
                     }
                 }
             }

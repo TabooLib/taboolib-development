@@ -1,5 +1,6 @@
 package org.tabooproject.intellij
 
+import okhttp3.Request
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
@@ -16,4 +17,8 @@ fun createFileWithDirectories(baseDir: String, relativePath: String): Path? {
         return Files.createFile(fullPath)
     }
     return null
+}
+
+fun getRequest(url: String): Request {
+    return Request.Builder().url(url).build()
 }

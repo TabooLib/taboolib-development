@@ -4,9 +4,11 @@ import freemarker.cache.StringTemplateLoader
 import freemarker.template.Configuration
 import freemarker.template.Template
 import okhttp3.OkHttpClient
-import okhttp3.Request
 import org.tabooproject.intellij.step.ConfigurationPropertiesStep
-import java.io.*
+import org.tabooproject.intellij.step.TEMPLATE_DOWNLOAD_MIRROR
+import java.io.IOException
+import java.io.StringReader
+import java.io.StringWriter
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.util.zip.ZipInputStream
@@ -27,10 +29,11 @@ val TEMPLATE_FILES: Map<String, TemplateFile> = listOf(
 
 object Template {
 
-    // GitHub 源
-    private const val DOWNLOAD_URL = "https://github.com/TabooLib/taboolib-sdk/archive/refs/heads/idea-template.zip"
+    private fun getTemplateDownloadUrl(): String {
+        return TEMPLATE_DOWNLOAD_MIRROR.getValue(ConfigurationPropertiesStep.property.mirrorIndex)
+    }
 
-    fun downloadAndUnzipFile(baseDir: String, url: String = DOWNLOAD_URL) {
+    fun downloadAndUnzipFile(baseDir: String, url: String = getTemplateDownloadUrl()) {
         val response = OkHttpClient()
             .newCall(getRequest(url))
             .execute()
@@ -76,9 +79,5 @@ object Template {
         createFileWithDirectories(baseDir, replacedPath)?.also { file ->
             Files.write(file, finalContent.toByteArray(StandardCharsets.UTF_8))
         }
-    }
-
-    private fun getRequest(url: String): Request {
-        return Request.Builder().url(url).build()
     }
 }
