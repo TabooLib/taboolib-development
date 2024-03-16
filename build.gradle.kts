@@ -63,10 +63,16 @@ tasks {
     }
 }
 
-tasks.register("writeVersionToFile") {
+val writeVersionToFile by tasks.registering {
+    val versionProp = project.objects.property(String::class.java).apply {
+        set(project.version.toString())
+    }
+
+    outputs.file("build/version.txt")
+
     doLast {
         val versionFile = file("build/version.txt")
-        versionFile.writeText(project.version.toString())
+        versionFile.writeText(versionProp.get())
     }
 }
 
