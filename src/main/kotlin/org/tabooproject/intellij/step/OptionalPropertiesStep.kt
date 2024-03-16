@@ -1,6 +1,7 @@
 package org.tabooproject.intellij.step
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
+import com.intellij.profile.codeInspection.ui.addScrollPaneIfNecessary
 import com.intellij.ui.dsl.builder.*
 import org.tabooproject.intellij.component.AddDeleteStringListPanel
 import javax.swing.JComponent
@@ -30,7 +31,7 @@ class OptionalPropertiesStep : ModuleWizardStep() {
     }
 
     override fun getComponent(): JComponent {
-        return panel {
+        val panel = panel {
             indent {
                 group("Optional Properties", indent = true) {
                     row("Description:") {
@@ -57,6 +58,7 @@ class OptionalPropertiesStep : ModuleWizardStep() {
                 }
             }
         }
+        return addScrollPaneIfNecessary(panel)
     }
 
     override fun updateDataModel() {

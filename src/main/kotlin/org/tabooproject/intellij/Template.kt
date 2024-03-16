@@ -22,7 +22,7 @@ val TEMPLATE_FILES: Map<String, TemplateFile> = listOf(
     TemplateFile("README.md"),
     TemplateFile("build.gradle.kts"),
     TemplateFile("gradle.properties"),
-    TemplateFile("settings.gradle.kts"),
+    TemplateFile("settings.gradle.kts")
 ).associateBy { it.node }
 
 object Template {
