@@ -1,7 +1,7 @@
 <idea-plugin>
     <id>org.tabooproject.intellij</id>
 
-    <name>Taboolib Integration</name>
+    <name>TabooLib Integration</name>
     <vendor>TabooLib</vendor>
 
     <description><![CDATA[
