@@ -5,8 +5,10 @@ plugins {
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
+fun properties(key: String) = project.findProperty(key).toString()
+
 group = "org.tabooproject.intellij"
-version = "1.0-SNAPSHOT"
+version = properties("version")
 
 repositories {
     mavenCentral()
@@ -45,6 +47,11 @@ tasks {
         archiveClassifier.set("all")
         relocate("org.freemarker", "org.tabooproject.intellij.freemarker")
         relocate("okhttp3", "org.tabooproject.intellij.okhttp3")
+    }
+
+    patchPluginXml {
+        sinceBuild.set(properties("pluginSinceBuild"))
+        untilBuild.set(properties("pluginUntilBuild"))
     }
 
     withType<JavaCompile> {
