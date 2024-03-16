@@ -5,9 +5,7 @@
     <vendor>TabooLib</vendor>
 
     <description><![CDATA[
-        TabooLib's IntelliJ integration plugin, current features:
-
-        - Provides a project builder for quickly creating TabooLib projects.
+        IntelliJ integration plugin of TabooLib, Provides a project builder for quickly creating TabooLib projects.
     ]]></description>
 
 
