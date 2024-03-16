@@ -3,7 +3,6 @@ package org.tabooproject.intellij
 import freemarker.cache.StringTemplateLoader
 import freemarker.template.Configuration
 import freemarker.template.Template
-import okhttp3.OkHttpClient
 import org.tabooproject.intellij.step.ConfigurationPropertiesStep
 import org.tabooproject.intellij.step.TEMPLATE_DOWNLOAD_MIRROR
 import java.io.IOException
@@ -11,6 +10,7 @@ import java.io.StringReader
 import java.io.StringWriter
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
+import java.util.concurrent.TimeUnit
 import java.util.zip.ZipInputStream
 
 data class TemplateFile(val node: String)
@@ -34,7 +34,12 @@ object Template {
     }
 
     fun downloadAndUnzipFile(baseDir: String, url: String = getTemplateDownloadUrl()) {
-        val response = OkHttpClient()
+        val client = createOkHttpClientWithSystemProxy {
+            connectTimeout(10, TimeUnit.SECONDS)
+            readTimeout(10, TimeUnit.SECONDS)
+        }
+
+        val response = client
             .newCall(getRequest(url))
             .execute()
             .takeIf { it.isSuccessful } ?: throw IOException("Failed to download file")

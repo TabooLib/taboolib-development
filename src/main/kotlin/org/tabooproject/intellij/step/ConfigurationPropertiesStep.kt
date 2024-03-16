@@ -1,10 +1,12 @@
 package org.tabooproject.intellij.step
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
+import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
-import okhttp3.OkHttpClient
 import org.tabooproject.intellij.component.AddDeleteModuleListPanel
+import org.tabooproject.intellij.createOkHttpClientWithSystemProxy
 import org.tabooproject.intellij.getRequest
+import org.tabooproject.intellij.util.LOCAL_MODULES
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
@@ -12,11 +14,10 @@ import javax.swing.JComponent
 private fun fetchAndParseModules(
     url: String = "https://raw.githubusercontent.com/TabooLib/taboolib-gradle-plugin/master/src/main/kotlin/io/izzel/taboolib/gradle/Standards.kt",
 ): List<String>? {
-    val client = OkHttpClient.Builder()
-        // TODO: detect user's proxy and make request through it
-        .connectTimeout(5, TimeUnit.SECONDS)
-        .readTimeout(5, TimeUnit.SECONDS)
-        .build()
+    val client = createOkHttpClientWithSystemProxy {
+        connectTimeout(5, TimeUnit.SECONDS)
+        readTimeout(5, TimeUnit.SECONDS)
+    }
     val request = getRequest(url)
 
     return try {
@@ -53,7 +54,7 @@ data class ConfigurationProperty(
     var name: String = "untitled",
     var mainClass: String = "org.example.untitled.UntitledPlugin",
     var version: String = "1.0-SNAPSHOT",
-    var mirrorIndex: String = "GitHub",
+    var mirrorIndex: String = "github.com",
     val modules: MutableList<String> = mutableListOf<String>().apply {
         add("UNIVERSAL")
         add("BUKKIT_ALL")
@@ -109,6 +110,7 @@ class ConfigurationPropertiesStep : ModuleWizardStep() {
                         comboBox(TEMPLATE_DOWNLOAD_MIRROR.keys)
                             .apply {
                                 component.selectedIndex = 0
+                                component.columns(20)
                             }.onChanged {
                                 property.mirrorIndex = it.selectedItem as String
                             }
