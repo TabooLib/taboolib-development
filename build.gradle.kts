@@ -63,6 +63,12 @@ tasks {
     }
 }
 
+tasks.register("printVersion") {
+    doLast {
+        println(project.version)
+    }
+}
+
 tasks.runIde {
     maxHeapSize = "4G"
 
