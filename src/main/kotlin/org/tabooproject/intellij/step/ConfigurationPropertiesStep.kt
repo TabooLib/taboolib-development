@@ -72,20 +72,25 @@ class ConfigurationPropertiesStep : ModuleWizardStep() {
                         textField()
                             .apply {
                                 component.text = property.name
+                                component.columns = 30
                             }.onChanged { property.name = it.text }
                     }
                     row("Plugin main class:") {
                         textField()
                             .apply {
                                 component.text = property.mainClass
+                                component.columns = 30
                             }.onChanged { property.mainClass = it.text }
                     }
                     row("Plugin version:") {
                         textField()
                             .apply {
                                 component.text = property.version
+                                component.columns = 30
                             }.onChanged { property.version = it.text }
                     }
+                    // 不知道怎么做间隔
+                    row { text("") }
                     row {
                         cell(modulePanel)
                     }

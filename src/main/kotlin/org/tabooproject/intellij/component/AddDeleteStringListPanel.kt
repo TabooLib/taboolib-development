@@ -8,13 +8,14 @@ class AddDeleteStringListPanel(
     title: String,
     initial: List<String>,
     private val dialogMessage: String,
-    private val dialogTitle: String
+    private val dialogTitle: String,
+    defaultHeight: Int = 100,
 ) : AddDeleteListPanel<String>(title, initial) {
 
     init {
         preferredSize = preferredSize.apply {
             width += 200
-            height += 100
+            height += defaultHeight
         }
     }
 

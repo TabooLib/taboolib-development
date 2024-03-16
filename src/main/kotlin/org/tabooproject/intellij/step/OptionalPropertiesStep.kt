@@ -16,9 +16,9 @@ data class OptionalProperty(
 
 class OptionalPropertiesStep : ModuleWizardStep() {
 
-    private val authorsPanel = AddDeleteStringListPanel("Authors", property.authors, "Author", "Add Author")
-    private val dependsPanel = AddDeleteStringListPanel("Depends", property.depends, "Depend", "Add Depend")
-    private val softDependsPanel = AddDeleteStringListPanel("Soft depends", property.softDepends, "Soft Depend", "Add Soft Depend")
+    private val authorsPanel = AddDeleteStringListPanel("Authors", property.authors, "Author", "Add Author", 10)
+    private val dependsPanel = AddDeleteStringListPanel("Depends", property.depends, "Depend", "Add Depend", 10)
+    private val softDependsPanel = AddDeleteStringListPanel("Soft depends", property.softDepends, "Soft Depend", "Add Soft Depend", 10)
 
     companion object {
 
@@ -38,6 +38,7 @@ class OptionalPropertiesStep : ModuleWizardStep() {
                         textField()
                             .apply {
                                 component.text = property.description
+                                component.columns = 30
                             }.onChanged { property.description = it.text }
                     }
                     row("Author:") {
@@ -47,6 +48,7 @@ class OptionalPropertiesStep : ModuleWizardStep() {
                         textField()
                             .apply {
                                 component.text = property.website
+                                component.columns = 30
                             }.onChanged { property.website = it.text }
                     }
                     row("Depends:") {

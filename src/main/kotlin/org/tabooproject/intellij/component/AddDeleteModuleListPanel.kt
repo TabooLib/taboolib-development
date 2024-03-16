@@ -7,12 +7,13 @@ import org.tabooproject.intellij.step.Module
 class AddDeleteModuleListPanel(
     title: String,
     initial: List<Module>,
+    defaultHeight: Int = 175
 ) : AddDeleteListPanel<Module>(title, initial) {
 
     init {
         preferredSize = preferredSize.apply {
-            width += 250
-            height += 175
+            width += 300
+            height += defaultHeight
         }
     }
 
