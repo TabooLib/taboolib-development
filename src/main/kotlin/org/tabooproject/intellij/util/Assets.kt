@@ -13,6 +13,6 @@ object Assets {
     }
 
     val description by lazy(LazyThreadSafetyMode.NONE) {
-        "The IntelliJ IDEA plugin for TabooLib."
+        "The Project builder for TabooLib."
     }
 }
