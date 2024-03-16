@@ -18,11 +18,11 @@ jobs:
           distribution: 'adopt'
 
       - name: Build with Gradle
-        run: ./gradlew build shadowJar
+        run: ./gradlew build shadowJar writeVersionToFile
 
-      - name: Get Version
-        id: get_version
-        run: echo "VERSION=$(./gradlew -q printVersion)" >> $GITHUB_ENV
+      - name: Read Version From File
+        id: read_version
+        run: echo "VERSION=$(cat build/version.txt)" >> $GITHUB_ENV
 
       - name: Upload Artifact
         uses: actions/upload-artifact@v2

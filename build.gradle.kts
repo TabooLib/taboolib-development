@@ -63,9 +63,10 @@ tasks {
     }
 }
 
-tasks.register("printVersion") {
+tasks.register("writeVersionToFile") {
     doLast {
-        println(project.version)
+        val versionFile = file("build/version.txt")
+        versionFile.writeText(project.version.toString())
     }
 }
 
