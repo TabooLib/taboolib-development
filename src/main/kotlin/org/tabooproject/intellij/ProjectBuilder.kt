@@ -15,7 +15,7 @@ import org.tabooproject.intellij.util.NewProjectWizardChainStep.Companion.nextSt
 import javax.swing.Icon
 
 
-class ModuleBuilder : AbstractNewProjectWizardBuilder() {
+class ProjectBuilder : AbstractNewProjectWizardBuilder() {
 
     override fun getDescription(): String {
         return Assets.description

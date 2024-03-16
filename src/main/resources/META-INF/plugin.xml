@@ -13,6 +13,6 @@
     <depends>com.intellij.modules.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <moduleBuilder id="TABOO_MODULE" builderClass="org.tabooproject.intellij.ModuleBuilder"/>
+        <moduleBuilder id="TABOO_PROJECT_BUILDER" builderClass="org.tabooproject.intellij.ProjectBuilder"/>
     </extensions>
 </idea-plugin>
