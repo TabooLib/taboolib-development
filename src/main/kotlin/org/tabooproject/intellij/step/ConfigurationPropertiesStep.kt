@@ -6,12 +6,17 @@ import okhttp3.OkHttpClient
 import org.tabooproject.intellij.component.AddDeleteModuleListPanel
 import org.tabooproject.intellij.getRequest
 import java.io.IOException
+import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
 
 private fun fetchAndParseModules(
     url: String = "https://raw.githubusercontent.com/TabooLib/taboolib-gradle-plugin/master/src/main/kotlin/io/izzel/taboolib/gradle/Standards.kt",
 ): List<String>? {
-    val client = OkHttpClient()
+    val client = OkHttpClient.Builder()
+        // TODO: detect user's proxy and make request through it
+        .connectTimeout(5, TimeUnit.SECONDS)
+        .readTimeout(5, TimeUnit.SECONDS)
+        .build()
     val request = getRequest(url)
 
     return try {
@@ -36,7 +41,7 @@ fun parseModules(content: String): List<String> {
 }
 
 val MODULES: List<String> by lazy {
-    fetchAndParseModules() ?: error("Failed to fetch modules")
+    fetchAndParseModules() ?: LOCAL_MODULES
 }
 
 val TEMPLATE_DOWNLOAD_MIRROR = mapOf(
