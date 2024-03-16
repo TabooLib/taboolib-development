@@ -5,105 +5,90 @@ import freemarker.template.Configuration
 import freemarker.template.Template
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.tabooproject.intellij.step.BuildSystemPropertiesStep
 import org.tabooproject.intellij.step.ConfigurationPropertiesStep
-import org.tabooproject.intellij.step.OptionalPropertiesStep
-import java.io.File
-import java.io.IOException
-import java.io.StringReader
-import java.io.StringWriter
+import java.io.*
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
-import java.nio.file.Paths
+import java.util.zip.ZipInputStream
 
-data class TemplateFile(val node: String, val block: () -> Map<String, Any> = { mapOf() }) {
+data class TemplateFile(val node: String)
 
-    fun getDownloadLink(): String {
-//        return "https://raw.githubusercontent.com/TabooLib/taboolib-sdk/idea-template/${node}.ftl"
-        return "https://template.tabooproject.org/${node}.ftl"
-    }
-}
+val TEMPLATE_FILES: Map<String, TemplateFile> = listOf(
+    TemplateFile(".github/.workflows/main.yml"),
+    TemplateFile("gradle/wrapper/gradle-wrapper.properties"),
+    TemplateFile("src/main/kotlin/io.github/username/project/ExamplePlugin.kt"),
+    TemplateFile(".gitignore"),
+    TemplateFile("LICENSE"),
+    TemplateFile("README.md"),
+    TemplateFile("build.gradle.kts"),
+    TemplateFile("gradle.properties"),
+    TemplateFile("settings.gradle.kts"),
+).associateBy { it.node }
 
 object Template {
 
-    private const val TEMPLATE_PREFIX = "TABOO_INTELLIJ_PREFIX"
-    private const val TEMPLATE_SUFFIX = "TABOO_INTELLIJ_SUFFIX"
+    // GitHub 源
+    private const val DOWNLOAD_URL = "https://github.com/TabooLib/taboolib-sdk/archive/refs/heads/idea-template.zip"
 
-    val WORKFLOW_YML = TemplateFile(".github/.workflows/main.yml")
+    fun downloadAndUnzipFile(baseDir: String, url: String = DOWNLOAD_URL) {
+        val response = OkHttpClient()
+            .newCall(getRequest(url))
+            .execute()
+            .takeIf { it.isSuccessful } ?: throw IOException("Failed to download file")
 
-    val GRADLE_WRAPPER_PROPERTIES = TemplateFile("gradle/wrapper/gradle-wrapper.properties")
-
-    val MAIN_PLUGIN_KT = TemplateFile("src/main/kotlin/io/github/username/project/ExamplePlugin.kt") {
-        mapOf(
-            "group" to ConfigurationPropertiesStep.property.mainClass.substringBeforeLast("."),
-            "name" to ConfigurationPropertiesStep.property.name
-        )
+        response.body?.byteStream()?.let { inputStream ->
+            unzipInMemory(inputStream).forEach { (path, stream) ->
+                process(path, stream, baseDir)
+            }
+        } ?: throw IOException("Response body is null")
     }
 
-    val GITIGNORE = TemplateFile(".gitignore")
+    private fun unzipInMemory(inputStream: InputStream): List<Pair<String, InputStream>> {
+        val fileList = mutableListOf<Pair<String, InputStream>>()
 
-    val LICENSE = TemplateFile("LICENSE")
-
-    val README = TemplateFile("README.md") {
-        mapOf("name" to ConfigurationPropertiesStep.property.name)
-    }
-
-    val BUILD_GRADLE_KTS = TemplateFile("build.gradle.kts") {
-        mutableMapOf<String, Any>(
-            "pluginName" to ConfigurationPropertiesStep.property.name,
-            "description" to OptionalPropertiesStep.property.description
-        ).also {
-            if (OptionalPropertiesStep.property.authors.isNotEmpty()) {
-                it["authors"] = listOf(OptionalPropertiesStep.property.authors)
-            }
-            if (OptionalPropertiesStep.property.website.isNotEmpty()) {
-                it["website"] = OptionalPropertiesStep.property.website
-            }
-            if (OptionalPropertiesStep.property.depends.isNotEmpty()) {
-                it["dependencies"] = OptionalPropertiesStep.property.depends
-            }
-            if (OptionalPropertiesStep.property.softDepends.isNotEmpty()) {
-                it["softDependencies"] = OptionalPropertiesStep.property.softDepends
+        ZipInputStream(inputStream).use { zip ->
+            var entry = zip.nextEntry
+            while (entry != null) {
+                if (!entry.isDirectory) {
+                    val fileBytes = zip.readBytes()
+                    val entryName = entry.name.substringAfter("taboolib-sdk-idea-template/")
+                    fileList.add(entryName to ByteArrayInputStream(fileBytes))
+                }
+                zip.closeEntry()
+                entry = zip.nextEntry
             }
         }
+        return fileList
     }
 
-    val GRADLE_PROPERTY = TemplateFile("gradle.properties") {
-        mapOf(
-            "group" to BuildSystemPropertiesStep.property.groupId,
-            "version" to BuildSystemPropertiesStep.property.version,
-            "artifactId" to BuildSystemPropertiesStep.property.artifactId
-        )
-    }
-
-    val SETTINGS_GRADLE = TemplateFile("settings.gradle.kts") {
-        mapOf("name" to BuildSystemPropertiesStep.property.artifactId)
-    }
-
-    fun extract(file: TemplateFile, targetFile: File) {
-        val rawContent = download(file)
-        val content = read(file, rawContent)
-        Files.write(Paths.get(targetFile.toURI()), content.toByteArray(StandardCharsets.UTF_8))
-    }
-
-    private fun download(file: TemplateFile): String {
-        val client = OkHttpClient()
-        val request = Request.Builder().url(file.getDownloadLink()).build()
-        client.newCall(request).execute().use { response ->
-            response.body ?: throw IOException("Download failed")
-            return response.body!!.string()
+    private fun process(path: String, stream: InputStream, baseDir: String) {
+        val rawContent = stream.readBytes().toString(StandardCharsets.UTF_8)
+        val replacedPath = path.replace(".ftl", "")
+        val templateFile = TEMPLATE_FILES[replacedPath] ?: return
+        val content = read(templateFile, rawContent)
+        val writtenPath = replacedPath
+            .replace("io.github/username/project/ExamplePlugin",
+                ConfigurationPropertiesStep.property.mainClass.replace(".", "/")
+            )
+        createFileWithDirectories(baseDir, writtenPath)?.also { file ->
+            Files.write(file, content.toByteArray(StandardCharsets.UTF_8))
         }
     }
 
     private fun read(templateFile: TemplateFile, content: String): String {
+        val data = FunctionTemplate.getBuildProperty()
         val cfg = Configuration(Configuration.VERSION_2_3_31).apply {
             templateLoader = StringTemplateLoader()
             defaultEncoding = "UTF-8"
         }
         val template = Template(templateFile.node, StringReader(content), cfg)
         StringWriter().use { writer ->
-            template.process(templateFile.block(), writer)
+            template.process(data, writer)
             return writer.toString()
         }
+    }
+
+    private fun getRequest(url: String): Request {
+        return Request.Builder().url(url).build()
     }
 }

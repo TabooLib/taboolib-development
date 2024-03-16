@@ -35,14 +35,18 @@ class OptionalPropertiesStep : ModuleWizardStep() {
                 group("Optional Properties", indent = true) {
                     row("Description:") {
                         textField()
-                            .bindText(property::description)
+                            .apply {
+                                component.text = property.description
+                            }.onChanged { property.description = it.text }
                     }
                     row("Author:") {
                         cell(authorsPanel)
                     }
                     row("Website:") {
                         textField()
-                            .bindText(property::website)
+                            .apply {
+                                component.text = property.website
+                            }.onChanged { property.website = it.text }
                     }
                     row("Depends:") {
                         cell(dependsPanel)
@@ -56,7 +60,6 @@ class OptionalPropertiesStep : ModuleWizardStep() {
     }
 
     override fun updateDataModel() {
-        // 针对控件数据 (AddDeleteListPanel) 无法直接绑定到数据模型的问题，手动导出数据
         property.authors.apply {
             clear()
             addAll(authorsPanel.export())

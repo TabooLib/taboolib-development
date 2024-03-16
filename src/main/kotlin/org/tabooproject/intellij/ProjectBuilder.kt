@@ -7,7 +7,6 @@ import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.ide.wizard.*
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider
-import org.tabooproject.intellij.step.BuildSystemPropertiesStep
 import org.tabooproject.intellij.step.ConfigurationPropertiesStep
 import org.tabooproject.intellij.step.OptionalPropertiesStep
 import org.tabooproject.intellij.util.Assets
@@ -32,7 +31,7 @@ class ProjectBuilder : AbstractNewProjectWizardBuilder() {
     @Suppress("UnstableApiUsage")
     override fun createStep(context: WizardContext): NewProjectWizardStep {
         return RootNewProjectWizardStep(context)
-            // 确定项目的基本信息, 在这两步做完紧跟着的是 createWizardSteps (确认 taboolib 和 gradle 的相关配置)
+            // 确定项目的基本信息, 在这两步做完紧跟着的是 createWizardSteps (确认 taboolib 的相关配置)
             .nextStep { NewProjectWizardBaseStep(it) }
             .nextStep { GitNewProjectWizardStep(it) }
             // 资源填充
@@ -42,30 +41,18 @@ class ProjectBuilder : AbstractNewProjectWizardBuilder() {
                     override fun setupAssets(project: Project) {
                         addAssets(StandardAssetsProvider().getGradlewAssets())
                         val directory = project.basePath!!
-                        listOf(
-                            Template.WORKFLOW_YML,
-                            Template.GITIGNORE,
-                            Template.LICENSE,
-                            Template.README,
-                            Template.BUILD_GRADLE_KTS,
-                            Template.GRADLE_WRAPPER_PROPERTIES,
-                            Template.MAIN_PLUGIN_KT,
-                            Template.GRADLE_PROPERTY,
-                            Template.SETTINGS_GRADLE
-                        ).forEach { template ->
-                            createFileWithDirectories(directory, template.node).also { file ->
-                                Template.extract(template, file?.toFile() ?: return)
-                            }
-                        }
+                        Template.downloadAndUnzipFile(directory)
                     }
                 }
             }
     }
 
     override fun createWizardSteps(wizardContext: WizardContext, modulesProvider: ModulesProvider): Array<ModuleWizardStep> {
+        return arrayOf(ConfigurationPropertiesStep(), OptionalPropertiesStep())
+    }
+
+    override fun cleanup() {
         ConfigurationPropertiesStep.refreshTemporaryData()
         OptionalPropertiesStep.refreshTemporaryData()
-        BuildSystemPropertiesStep.refreshTemporaryData()
-        return arrayOf(ConfigurationPropertiesStep(), OptionalPropertiesStep(), BuildSystemPropertiesStep())
     }
 }

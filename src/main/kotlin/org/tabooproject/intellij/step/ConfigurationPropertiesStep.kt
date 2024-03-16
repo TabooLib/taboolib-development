@@ -1,7 +1,6 @@
 package org.tabooproject.intellij.step
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
-import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
 import org.tabooproject.intellij.component.AddDeleteModuleListPanel
 import javax.swing.JComponent
@@ -47,6 +46,7 @@ enum class Module {
 data class ConfigurationProperty(
     var name: String = "untitled",
     var mainClass: String = "org.example.untitled.UntitledPlugin",
+    var version: String = "1.0-SNAPSHOT",
     val modules: MutableList<Module> = mutableListOf(Module.UNIVERSAL, Module.BUKKIT_ALL),
 )
 
@@ -70,13 +70,21 @@ class ConfigurationPropertiesStep : ModuleWizardStep() {
                 group("Configuration Properties", indent = true) {
                     row("Plugin name:") {
                         textField()
-                            .comment("The name of the plugin")
-                            .bindText(property::name)
+                            .apply {
+                                component.text = property.name
+                            }.onChanged { property.name = it.text }
                     }
                     row("Plugin main class:") {
                         textField()
-                            .comment("The main class of the plugin")
-                            .bindText(property::mainClass)
+                            .apply {
+                                component.text = property.mainClass
+                            }.onChanged { property.mainClass = it.text }
+                    }
+                    row("Plugin version:") {
+                        textField()
+                            .apply {
+                                component.text = property.version
+                            }.onChanged { property.version = it.text }
                     }
                     row {
                         cell(modulePanel)
