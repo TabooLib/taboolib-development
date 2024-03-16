@@ -13,8 +13,8 @@ repositories {
 }
 
 dependencies {
-    compileOnly("com.squareup.okhttp3:okhttp:4.12.0")
-    compileOnly("org.freemarker:freemarker:2.3.32")
+    implementation("com.squareup.okhttp3:okhttp:4.12.0")
+    implementation("org.freemarker:freemarker:2.3.32")
 }
 
 
