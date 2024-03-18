@@ -1,6 +1,8 @@
 package org.tabooproject.intellij.step
 
+import ai.grazie.utils.capitalize
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
+import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
 import org.tabooproject.intellij.component.AddDeleteModuleListPanel
@@ -10,6 +12,7 @@ import org.tabooproject.intellij.util.LOCAL_MODULES
 import java.io.IOException
 import java.util.concurrent.TimeUnit
 import javax.swing.JComponent
+import javax.swing.JTextField
 
 private fun fetchAndParseModules(
     url: String = "https://raw.githubusercontent.com/TabooLib/taboolib-gradle-plugin/master/src/main/kotlin/io/izzel/taboolib/gradle/Standards.kt",
@@ -51,7 +54,7 @@ val TEMPLATE_DOWNLOAD_MIRROR = mapOf(
 )
 
 data class ConfigurationProperty(
-    var name: String = "untitled",
+    var name: String? = null,
     var mainClass: String = "org.example.untitled.UntitledPlugin",
     var version: String = "1.0-SNAPSHOT",
     var mirrorIndex: String = "github.com",
@@ -61,9 +64,12 @@ data class ConfigurationProperty(
     },
 )
 
-class ConfigurationPropertiesStep : ModuleWizardStep() {
+class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep() {
 
     private val modulePanel = AddDeleteModuleListPanel("Modules", property.modules)
+
+    private var mainClassTextField: JTextField? = null
+
 
     companion object {
 
@@ -82,15 +88,20 @@ class ConfigurationPropertiesStep : ModuleWizardStep() {
                     row("Plugin name:") {
                         textField()
                             .apply {
+                                property.mainClass = "org.example.${property.name?.lowercase()}.${property.name?.capitalize()}Plugin"
                                 component.text = property.name
                                 component.columns = 30
-                            }.onChanged { property.name = it.text }
+                            }.onChanged {
+                                autoChangeMainClass(it.text)
+                                property.name = it.text
+                            }
                     }
                     row("Plugin main class:") {
                         textField()
                             .apply {
                                 component.text = property.mainClass
                                 component.columns = 30
+                                mainClassTextField = this.component
                             }.onChanged { property.mainClass = it.text }
                     }
                     row("Plugin version:") {
@@ -120,11 +131,56 @@ class ConfigurationPropertiesStep : ModuleWizardStep() {
         }
     }
 
+    override fun updateStep() {
+        if (property.name == null){
+            property.name = context.projectName
+        }
+    }
+
     override fun updateDataModel() {
         // 针对控件数据 (AddDeleteListPanel) 无法直接绑定到数据模型的问题，手动导出数据
         property.modules.apply {
             clear()
             addAll(modulePanel.export())
         }
+    }
+
+    /**
+     * 自动更改主类名。
+     * 此函数检查当前的主类名是否符合特定的插件命名模式，并根据匹配情况自动更新主类名。
+     * 如果输入的文本与插件名匹配，且现有插件名以该文本为前缀，则将插件名中的该文本替换为新文本。
+     *
+     * @param text 要替换到主类名中的新文本。
+     */
+    private fun autoChangeMainClass(text:String) {
+        // 如果 mainClassTextField 未初始化，则直接返回
+        if (mainClassTextField == null) return
+
+        // 提取重复的字符串操作，减少代码重复并提高性能
+        var baseClass = property.mainClass.substringBeforeLast(".")
+        val currentLastPart = property.mainClass.substringAfterLast(".")
+
+        val newLastPart = when {
+            currentLastPart == "Plugin" -> text + "Plugin"
+            currentLastPart.isEmpty() -> text.capitalize()
+            currentLastPart == property.name?.lowercase() -> text.capitalize()
+            currentLastPart.removeSuffix("Plugin").lowercase() == property.name?.lowercase() -> text.capitalize() + "Plugin"
+            else -> currentLastPart
+        }
+
+
+        val lastGroup = baseClass.substringAfterLast(".").let {
+            if (it.lowercase() == property.name?.lowercase()){
+                return@let text.lowercase()
+            }else{
+                it
+            }
+        }
+
+        baseClass = baseClass.substringBeforeLast(".")
+
+        // 更新 mainClassTextField 的文本
+        mainClassTextField!!.text = "$baseClass.$lastGroup.$newLastPart"
+
     }
 }
