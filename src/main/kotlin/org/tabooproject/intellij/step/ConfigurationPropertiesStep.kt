@@ -132,7 +132,7 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
     }
 
     override fun updateStep() {
-        if (property.name == null){
+        if (property.name == null) {
             property.name = context.projectName
         }
     }
@@ -152,11 +152,11 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
      *
      * @param text 要替换到主类名中的新文本。
      */
-    private fun autoChangeMainClass(text:String) {
-        // 如果 mainClassTextField 未初始化，则直接返回
+    private fun autoChangeMainClass(text: String) {
+        // 如果 mainClassTextField 未初始化, 则直接返回
         if (mainClassTextField == null) return
 
-        // 提取重复的字符串操作，减少代码重复并提高性能
+        // 提取重复的字符串操作, 减少代码重复并提高性能
         var baseClass = property.mainClass.substringBeforeLast(".")
         val currentLastPart = property.mainClass.substringAfterLast(".")
 
@@ -168,11 +168,10 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
             else -> currentLastPart
         }
 
-
         val lastGroup = baseClass.substringAfterLast(".").let {
-            if (it.lowercase() == property.name?.lowercase()){
+            if (it.lowercase() == property.name?.lowercase()) {
                 return@let text.lowercase()
-            }else{
+            } else {
                 it
             }
         }
@@ -181,6 +180,5 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
 
         // 更新 mainClassTextField 的文本
         mainClassTextField!!.text = "$baseClass.$lastGroup.$newLastPart"
-
     }
 }

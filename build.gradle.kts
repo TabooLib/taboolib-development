@@ -19,7 +19,6 @@ dependencies {
     implementation("org.freemarker:freemarker:2.3.32")
 }
 
-
 intellij {
     version.set("2023.1.5")
 
@@ -29,8 +28,8 @@ intellij {
         "Kotlin"
     )
 
-    pluginName = "Taboo Integration"
-    updateSinceUntilBuild = true
+    pluginName.set("Taboo Integration")
+    updateSinceUntilBuild.set(true)
 }
 
 kotlin {
@@ -47,11 +46,6 @@ tasks {
         archiveClassifier.set("all")
         relocate("org.freemarker", "org.tabooproject.intellij.freemarker")
         relocate("okhttp3", "org.tabooproject.intellij.okhttp3")
-    }
-
-    patchPluginXml {
-        sinceBuild.set(properties("pluginSinceBuild"))
-        untilBuild.set(properties("pluginUntilBuild"))
     }
 
     withType<JavaCompile> {
