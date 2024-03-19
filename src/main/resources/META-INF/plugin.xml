@@ -5,7 +5,7 @@
     <vendor>TabooLib</vendor>
 
     <description><![CDATA[ plugin
-        <a href="https://github.com/TabooLib/taboolib"TabooLib</a> is a cross-platform plugin development framework for Minecraft (Java Edition),
+        <a href="https://github.com/TabooLib/taboolib">TabooLib</a> is a cross-platform plugin development framework for Minecraft (Java Edition),
         designed to replace repetitive tasks and solve some frustrating issues.
 
         This IntelliJ plugin provides a Project Builder for TabooLib, enabling quick creation of TabooLib projects,
