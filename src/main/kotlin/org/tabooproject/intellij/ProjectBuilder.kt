@@ -48,7 +48,7 @@ class ProjectBuilder : AbstractNewProjectWizardBuilder() {
     }
 
     override fun createWizardSteps(wizardContext: WizardContext, modulesProvider: ModulesProvider): Array<ModuleWizardStep> {
-        return arrayOf(ConfigurationPropertiesStep(), OptionalPropertiesStep())
+        return arrayOf(ConfigurationPropertiesStep(wizardContext), OptionalPropertiesStep())
     }
 
     override fun cleanup() {

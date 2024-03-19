@@ -9,7 +9,7 @@ object FunctionTemplate {
         return mutableMapOf<String, Any>().apply {
             val configProperty = ConfigurationPropertiesStep.property
             // 插件名
-            put("name", configProperty.name)
+            put("name", configProperty.name!!)
             // 主类
             put("group", configProperty.mainClass
                 // 截去插件名
