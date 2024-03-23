@@ -13,11 +13,12 @@
         Please report issues to <a href="https://github.com/TabooLib/taboolib-intellij/issues">the issue tracker</a>!
     ]]></change-notes>
 
-
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <moduleBuilder id="TABOO_PROJECT_BUILDER" builderClass="org.tabooproject.intellij.ProjectBuilder"/>
     </extensions>
+
 </idea-plugin>

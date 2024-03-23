@@ -7,6 +7,7 @@ import javax.swing.JComponent
 import javax.swing.JLabel
 import javax.swing.JPanel
 
+@Deprecated("Use CheckModulePanel")
 class SelectBoxDialog(inputTitle: String, private val inputMessage: String, options: Array<String>) : DialogWrapper(true) {
 
     private val comboBox: JComboBox<String> = ComboBox(options)

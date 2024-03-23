@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    id("org.jetbrains.kotlin.jvm") version "1.9.20"
+    kotlin("jvm") version "1.9.22"
     id("org.jetbrains.intellij") version "1.17.2"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -42,7 +42,8 @@ kotlin {
 
 
 tasks {
-    shadowJar {
+
+shadowJar {
         archiveClassifier.set("all")
         relocate("org.freemarker", "org.tabooproject.intellij.freemarker")
         relocate("okhttp3", "org.tabooproject.intellij.okhttp3")
