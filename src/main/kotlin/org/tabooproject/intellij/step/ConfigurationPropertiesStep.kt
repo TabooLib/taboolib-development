@@ -5,48 +5,51 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
-import org.tabooproject.intellij.component.AddDeleteModuleListPanel
-import org.tabooproject.intellij.createOkHttpClientWithSystemProxy
-import org.tabooproject.intellij.getRequest
-import org.tabooproject.intellij.util.LOCAL_MODULES
-import java.io.IOException
-import java.util.concurrent.TimeUnit
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.launch
+import org.tabooproject.intellij.component.CheckModulePanel
+import org.tabooproject.intellij.util.ResourceLoader
 import javax.swing.JComponent
 import javax.swing.JTextField
 
-private fun fetchAndParseModules(
-    url: String = "https://raw.githubusercontent.com/TabooLib/taboolib-gradle-plugin/master/src/main/kotlin/io/izzel/taboolib/gradle/Standards.kt",
-): List<String>? {
-    val client = createOkHttpClientWithSystemProxy {
-        connectTimeout(5, TimeUnit.SECONDS)
-        readTimeout(5, TimeUnit.SECONDS)
-    }
-    val request = getRequest(url)
+//private fun fetchAndParseModules(
+//    url: String = "https://raw.githubusercontent.com/TabooLib/taboolib-gradle-plugin/master/src/main/kotlin/io/izzel/taboolib/gradle/Standards.kt",
+//): List<String>? {
+//    val client = createOkHttpClientWithSystemProxy {
+//        connectTimeout(5, TimeUnit.SECONDS)
+//        readTimeout(5, TimeUnit.SECONDS)
+//    }
+//    val request = getRequest(url)
+//
+//    return try {
+//        val response = client.newCall(request).execute()
+//        response.body?.string()?.let { responseBody ->
+//            parseModules(responseBody)
+//        }
+//    } catch (e: IOException) {
+//        e.printStackTrace()
+//        null
+//    }
+//}
 
-    return try {
-        val response = client.newCall(request).execute()
-        response.body?.string()?.let { responseBody ->
-            parseModules(responseBody)
-        }
-    } catch (e: IOException) {
-        e.printStackTrace()
-        null
-    }
-}
+//fun parseModules(content: String): List<String> {
+//    val pattern = """val (\w+) =""".toRegex()
+//    return pattern.findAll(content)
+//        .mapNotNull { matchResult ->
+//            val id = matchResult.groupValues[1]
+//            id.ifBlank { null }
+//        }
+//        .toList()
+//}
 
-fun parseModules(content: String): List<String> {
-    val pattern = """val (\w+) =""".toRegex()
-    return pattern.findAll(content)
-        .mapNotNull { matchResult ->
-            val id = matchResult.groupValues[1]
-            id.ifBlank { null }
-        }
-        .toList()
-}
+data class Module(
+    val name: String,
+    val desc: String?,
+    val id: String
+)
 
-val MODULES: List<String> by lazy {
-    fetchAndParseModules() ?: LOCAL_MODULES
-}
 
 val TEMPLATE_DOWNLOAD_MIRROR = mapOf(
     "github.com" to "https://github.com/TabooLib/taboolib-sdk/archive/refs/heads/idea-template.zip",
@@ -58,18 +61,15 @@ data class ConfigurationProperty(
     var mainClass: String = "org.example.untitled.UntitledPlugin",
     var version: String = "1.0-SNAPSHOT",
     var mirrorIndex: String = "github.com",
-    val modules: MutableList<String> = mutableListOf<String>().apply {
-        add("UNIVERSAL")
-        add("BUKKIT_ALL")
-    },
+    val modules: MutableList<Module> = mutableListOf() // 不给默认模块了
 )
 
 class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep() {
 
-    private val modulePanel = AddDeleteModuleListPanel("Modules", property.modules)
-
+    private val checkModulePanel = CheckModulePanel()
     private var mainClassTextField: JTextField? = null
 
+    private var inited = false
 
     companion object {
 
@@ -111,10 +111,8 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
                                 component.columns = 30
                             }.onChanged { property.version = it.text }
                     }
-                    // 不知道怎么做间隔
-                    row { text("") }
                     row {
-                        cell(modulePanel)
+                        cell(checkModulePanel)
                     }
                     row { text("") }
                     row("Select template download mirror:") {
@@ -131,6 +129,17 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
+    override fun _init() {
+        if (inited) return
+        GlobalScope.launch {
+            coroutineScope {
+                checkModulePanel.setModules(ResourceLoader.getModules())
+                inited = true
+            }
+        }
+    }
+
     override fun updateStep() {
         if (property.name == null){
             property.name = context.projectName
@@ -139,10 +148,10 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
 
     override fun updateDataModel() {
         // 针对控件数据 (AddDeleteListPanel) 无法直接绑定到数据模型的问题，手动导出数据
-        property.modules.apply {
-            clear()
-            addAll(modulePanel.export())
-        }
+//        property.modules.apply {
+//            clear()
+//            addAll(checkModulePanel.export().map { it.id })
+//        }
     }
 
     /**

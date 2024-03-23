@@ -1,0 +1,190 @@
+{
+  "modules": {
+    "basic": [
+      {
+        "name": "Chat",
+        "desc": "chat module",
+        "id": "CHAT"
+      },
+      {
+        "name": "Configuration",
+        "desc": "configuration module",
+        "id": "CONFIGURATION"
+      },
+      {
+        "name": "Lang",
+        "desc": "lang module",
+        "id": "LANG"
+      },
+      {
+        "name": "Kether",
+        "desc": "kether script module",
+        "id": "KETHER"
+      },
+      {
+        "name": "Metrics",
+        "desc": "metrics module",
+        "id": "METRICS"
+      },
+      {
+        "name": "Database",
+        "desc": "database module",
+        "id": "DATABASE"
+      },
+      {
+        "name": "NMS",
+        "desc": "nms module",
+        "id": "NMS"
+      },
+      {
+        "name": "NMS_UTIL",
+        "desc": "nms util module",
+        "id": "NMS_UTIL"
+      },
+      {
+        "name": "Navigation",
+        "desc": "navigation module",
+        "id": "NAVIGATION"
+      },
+      {
+        "name": "AI",
+        "desc": "ai module",
+        "id": "AI"
+      },
+      {
+        "name": "UI",
+        "desc": "ui module",
+        "id": "UI"
+      },
+      {
+        "name": "Effect",
+        "desc": "effect module",
+        "id": "EFFECT"
+      },
+      {
+        "name": "Porticus",
+        "desc": "porticus module",
+        "id": "PORTICUS"
+      }
+    ],
+    "expansion": [
+      {
+        "name": "expansion_redis",
+        "desc": "redis expansion module",
+        "id": "EXPANSION_REDIS"
+      },
+      {
+        "name": "expansion_command_helper",
+        "desc": "command helper expansion module",
+        "id": "EXPANSION_COMMAND_HELPER"
+      },
+      {
+        "name": "expansion_geek_tool",
+        "desc": "geek tool expansion module",
+        "id": "EXPANSION_GEEK_TOOL"
+      },
+      {
+        "name": "expansion_ioc",
+        "desc": "ioc expansion module",
+        "id": "EXPANSION_IOC"
+      },
+      {
+        "name": "expansion_javascript",
+        "desc": "javascript expansion module",
+        "id": "EXPANSION_JAVASCRIPT"
+      },
+      {
+        "name": "expansion_lang_tool",
+        "desc": "lang tool expansion module",
+        "id": "EXPANSION_LANG_TOOL"
+      },
+      {
+        "name": "expansion_player_database",
+        "desc": "player database expansion module",
+        "id": "EXPANSION_PLAYER_DATABASE"
+      },
+      {
+        "name": "expansion_player_fake_op",
+        "desc": "player fake op expansion module",
+        "id": "EXPANSION_PLAYER_FAKE_OP"
+      },
+      {
+        "name": "expansion_submit_chain",
+        "desc": "submit chain expansion module",
+        "id": "EXPANSION_SUBMIT_CHAIN"
+      },
+      {
+        "name": "expansion_ptc",
+        "desc": "ptc expansion module",
+        "id": "EXPANSION_PTC"
+      },
+      {
+        "name": "expansion_ptc_object",
+        "desc": "ptc object expansion module",
+        "id": "EXPANSION_PTC_OBJECT"
+      },
+      {
+        "name": "expansion_jexl",
+        "desc": "jexl expansion module",
+        "id": "EXPANSION_JEXL"
+      },
+      {
+        "name": "expansion_folia",
+        "desc": "folia expansion module",
+        "id": "EXPANSION_FOLIA"
+      }
+    ],
+    "platform": [
+      {
+        "name": "application",
+        "desc": "application platform module",
+        "id": "APPLICATION"
+      },
+      {
+        "name": "bukkit",
+        "desc": "bukkit platform module",
+        "id": "BUKKIT"
+      },
+      {
+        "name": "bukkit_hook",
+        "desc": "bukkit hook module",
+        "id": "BUKKIT_HOOK"
+      },
+      {
+        "name": "bukkit_util",
+        "desc": "bukkit util module",
+        "id": "BUKKIT_UTIL"
+      },
+      {
+        "name": "bukkit_xseries",
+        "desc": "bukkit xseries module",
+        "id": "BUKKIT_XSERIES"
+      },
+      {
+        "name": "bungee",
+        "desc": "bungee platform module",
+        "id": "BUNGEE"
+      },
+      {
+        "name": "velocity",
+        "desc": "velocity platform module",
+        "id": "VELOCITY"
+      },
+      {
+        "name": "bukkit_all",
+        "desc": "bukkit all platform module",
+        "id": "BUKKIT_ALL"
+      },
+      {
+        "name": "universal",
+        "desc": "universal",
+        "id": "UNIVERSAL"
+      },
+      {
+        "name": "universal_database",
+        "desc": "universal database",
+        "id": "UNIVERSAL_DATABASE"
+      }
+    ]
+  }
+}

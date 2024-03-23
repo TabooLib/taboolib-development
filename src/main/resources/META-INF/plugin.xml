@@ -8,11 +8,12 @@
         IntelliJ integration of TabooLib, Provides a project builder for quickly creating TabooLib projects.
     ]]></description>
 
-
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
+    <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <moduleBuilder id="TABOO_PROJECT_BUILDER" builderClass="org.tabooproject.intellij.ProjectBuilder"/>
     </extensions>
+
 </idea-plugin>
