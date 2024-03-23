@@ -5,8 +5,13 @@
     <vendor>TabooLib</vendor>
 
     <description><![CDATA[ plugin
-        IntelliJ integration of TabooLib, Provides a project builder for quickly creating TabooLib projects.
+        This IntelliJ plugin provides a Project Builder for <a href="https://github.com/TabooLib/taboolib">TabooLib</a>, enabling quick creation of TabooLib projects,
+        with potential future integrations of more support specifically tailored for TabooLib projects.
     ]]></description>
+
+    <change-notes><![CDATA[
+        Please report issues to <a href="https://github.com/TabooLib/taboolib-intellij/issues">the issue tracker</a>!
+    ]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
