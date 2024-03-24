@@ -19,7 +19,6 @@ dependencies {
     implementation("org.freemarker:freemarker:2.3.32")
 }
 
-
 intellij {
     version.set("2023.1.5")
 
@@ -29,8 +28,8 @@ intellij {
         "Kotlin"
     )
 
-    pluginName = "Taboo Integration"
-    updateSinceUntilBuild = true
+    pluginName.set("Taboo Integration")
+    updateSinceUntilBuild.set(false)
 }
 
 kotlin {
@@ -52,7 +51,6 @@ shadowJar {
 
     patchPluginXml {
         sinceBuild.set(properties("pluginSinceBuild"))
-        untilBuild.set(properties("pluginUntilBuild"))
     }
 
     withType<JavaCompile> {
