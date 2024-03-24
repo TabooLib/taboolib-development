@@ -20,7 +20,7 @@ object FunctionTemplate {
             // 模块列表
             put("modules", configProperty.modules.map { it.id })
             // 从模块构建额外 imports
-            put("extraPackages", configProperty.modules.map { "import io.izzel.taboolib.gradle.${it}" })
+            put("extraPackages", configProperty.modules.map { "import io.izzel.taboolib.gradle.${it.id}" })
             val optionalProperty = OptionalPropertiesStep.property
             // 插件描述
             put("description", optionalProperty.description)
