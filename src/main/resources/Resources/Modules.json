@@ -3,42 +3,42 @@
     "basic": [
       {
         "name": "Chat",
-        "desc": "chat module",
+        "desc": "消息模块",
         "id": "CHAT"
       },
       {
         "name": "Configuration",
-        "desc": "configuration module",
+        "desc": "配置模块",
         "id": "CONFIGURATION"
       },
       {
         "name": "Lang",
-        "desc": "lang module",
+        "desc": "语言模块",
         "id": "LANG"
       },
       {
         "name": "Kether",
-        "desc": "kether script module",
+        "desc": "kether Script 模块",
         "id": "KETHER"
       },
       {
         "name": "Metrics",
-        "desc": "metrics module",
+        "desc": "匿名统计模块，目前使用的是bstats.org服务",
         "id": "METRICS"
       },
       {
         "name": "Database",
-        "desc": "database module",
+        "desc": "数据库模块",
         "id": "DATABASE"
       },
       {
         "name": "NMS",
-        "desc": "nms module",
+        "desc": "NMS模块",
         "id": "NMS"
       },
       {
         "name": "NMS_UTIL",
-        "desc": "nms util module",
+        "desc": "NMS工具模块",
         "id": "NMS_UTIL"
       },
       {
@@ -48,54 +48,54 @@
       },
       {
         "name": "AI",
-        "desc": "ai module",
+        "desc": "生物AI模块",
         "id": "AI"
       },
       {
         "name": "UI",
-        "desc": "ui module",
+        "desc": "UI模块",
         "id": "UI"
       },
       {
         "name": "Effect",
-        "desc": "effect module",
+        "desc": "特效模块",
         "id": "EFFECT"
       },
       {
         "name": "Porticus",
-        "desc": "porticus module",
+        "desc": "Porticus 模块",
         "id": "PORTICUS"
       }
     ],
     "expansion": [
       {
         "name": "expansion_redis",
-        "desc": "redis expansion module",
+        "desc": "拓展-Redis功能模块",
         "id": "EXPANSION_REDIS"
       },
       {
         "name": "expansion_command_helper",
-        "desc": "command helper expansion module",
+        "desc": "拓展-命令帮助信息功能模块",
         "id": "EXPANSION_COMMAND_HELPER"
       },
       {
         "name": "expansion_geek_tool",
-        "desc": "geek tool expansion module",
+        "desc": "拓展-Geek工具功能模块",
         "id": "EXPANSION_GEEK_TOOL"
       },
       {
         "name": "expansion_ioc",
-        "desc": "ioc expansion module",
+        "desc": "拓展-IOC功能模块",
         "id": "EXPANSION_IOC"
       },
       {
         "name": "expansion_javascript",
-        "desc": "javascript expansion module",
+        "desc": "拓展-JavaScript执行环境模块",
         "id": "EXPANSION_JAVASCRIPT"
       },
       {
         "name": "expansion_player_database",
-        "desc": "player database expansion module",
+        "desc": "拓展-玩家数据库模块",
         "id": "EXPANSION_PLAYER_DATABASE"
       },
       {
@@ -125,49 +125,49 @@
       },
       {
         "name": "expansion_folia",
-        "desc": "folia expansion module",
+        "desc": "拓展-Folia支持功能模块",
         "id": "EXPANSION_FOLIA"
       }
     ],
     "platform": [
       {
         "name": "application",
-        "desc": "application platform module",
+        "desc": "平台-独立应用",
         "id": "APPLICATION"
       },
       {
         "name": "bukkit",
-        "desc": "bukkit platform module",
+        "desc": "平台-Bukkit",
         "id": "BUKKIT"
       },
       {
         "name": "bukkit_hook",
-        "desc": "bukkit hook module",
+        "desc": "Bukkit Hook聚合模块",
         "id": "BUKKIT_HOOK"
       },
       {
         "name": "bukkit_util",
-        "desc": "bukkit util module",
+        "desc": "Bukkit Util聚合模块",
         "id": "BUKKIT_UTIL"
       },
       {
         "name": "bukkit_xseries",
-        "desc": "bukkit xseries module",
+        "desc": "Bukkit XSeries模块",
         "id": "BUKKIT_XSERIES"
       },
       {
         "name": "bungee",
-        "desc": "bungee platform module",
+        "desc": "平台-Bungee",
         "id": "BUNGEE"
       },
       {
         "name": "velocity",
-        "desc": "velocity platform module",
+        "desc": "平台-Velocity",
         "id": "VELOCITY"
       },
       {
         "name": "bukkit_all",
-        "desc": "bukkit all platform module",
+        "desc": "Bukkit ALL聚合模块",
         "id": "BUKKIT_ALL"
       },
       {
