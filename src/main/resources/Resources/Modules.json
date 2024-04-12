@@ -94,11 +94,6 @@
         "id": "EXPANSION_JAVASCRIPT"
       },
       {
-        "name": "expansion_lang_tool",
-        "desc": "lang tool expansion module",
-        "id": "EXPANSION_LANG_TOOL"
-      },
-      {
         "name": "expansion_player_database",
         "desc": "player database expansion module",
         "id": "EXPANSION_PLAYER_DATABASE"
