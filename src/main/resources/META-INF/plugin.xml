@@ -20,7 +20,9 @@
     <extensions defaultExtensionNs="com.intellij">
         <moduleBuilder id="TABOO_PROJECT_BUILDER" builderClass="org.tabooproject.intellij.ProjectBuilder"/>
         <lang.inspectionSuppressor language="kotlin"
-                                   implementationClass="org.tabooproject.intellij.component.AnnotatedUnusedSuppressor"/>
+                                   implementationClass="org.tabooproject.intellij.suppressor.AnnotatedUnusedSuppressor"/>
+        <lang.inspectionSuppressor language="kotlin"
+                                   implementationClass="org.tabooproject.intellij.suppressor.ExpansionUnusedSuppressor"/>
     </extensions>
 
 </idea-plugin>

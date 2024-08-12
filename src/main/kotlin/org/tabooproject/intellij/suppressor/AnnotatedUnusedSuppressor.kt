@@ -1,11 +1,10 @@
-package org.tabooproject.intellij.component
+package org.tabooproject.intellij.suppressor
 
 import com.intellij.codeInspection.InspectionSuppressor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.psi.PsiElement
-import org.jetbrains.kotlin.psi.*
+import org.jetbrains.kotlin.psi.KtAnnotated
 import org.tabooproject.intellij.findContainingAnnotated
-
 
 private val ANNOTATIONS = hashSetOf(
     "SubscribeEvent",
