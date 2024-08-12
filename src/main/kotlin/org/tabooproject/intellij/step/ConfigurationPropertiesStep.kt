@@ -52,8 +52,8 @@ data class Module(
 
 
 val TEMPLATE_DOWNLOAD_MIRROR = mapOf(
+    "tabooproject.org" to "https://template.tabooproject.org",
     "github.com" to "https://github.com/TabooLib/taboolib-sdk/archive/refs/heads/idea-template.zip",
-    "tabooproject.org" to "https://template.tabooproject.org"
 )
 
 data class ConfigurationProperty(

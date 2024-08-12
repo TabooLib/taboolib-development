@@ -1,7 +1,9 @@
 package org.tabooproject.intellij
 
+import com.intellij.psi.*
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.jetbrains.kotlin.psi.KtAnnotated
 import java.net.InetSocketAddress
 import java.net.Proxy
 import java.nio.file.Files
@@ -43,4 +45,29 @@ fun createOkHttpClientWithSystemProxy(block: OkHttpClient.Builder.() -> Unit = {
 
 fun getRequest(url: String): Request {
     return Request.Builder().url(url).build()
+}
+
+fun PsiElement.findContainingAnnotated(): KtAnnotated? = findParent(resolveReferences = false) { it is KtAnnotated }
+
+private inline fun <reified T : PsiElement> PsiElement.findParent(
+    resolveReferences: Boolean,
+    stop: (PsiElement) -> Boolean,
+): T? {
+    var el: PsiElement = this
+
+    while (true) {
+        if (resolveReferences && el is PsiReference) {
+            el = el.resolve() ?: return null
+        }
+
+        if (el is T) {
+            return el
+        }
+
+        if (el is PsiFile || el is PsiDirectory || stop(el)) {
+            return null
+        }
+
+        el = el.parent ?: return null
+    }
 }
