@@ -33,8 +33,6 @@ fun createOkHttpClientWithSystemProxy(block: OkHttpClient.Builder.() -> Unit = {
     val proxyHost = System.getProperty("http.proxyHost")
     val proxyPort = System.getProperty("http.proxyPort")
 
-    println("proxy host: $proxyHost, proxyPort: $proxyPort")
-
     val clientBuilder = OkHttpClient.Builder().apply {
         block(this)
     }
