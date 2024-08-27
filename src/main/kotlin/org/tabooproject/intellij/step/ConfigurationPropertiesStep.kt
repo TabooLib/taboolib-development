@@ -3,6 +3,8 @@ package org.tabooproject.intellij.step
 import ai.grazie.utils.capitalize
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
+import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
 import kotlinx.coroutines.DelicateCoroutinesApi
@@ -11,6 +13,7 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import org.tabooproject.intellij.component.CheckModulePanel
 import org.tabooproject.intellij.util.ResourceLoader
+import org.tabooproject.intellij.util.ResourceLoader.loadModules
 import javax.swing.JComponent
 import javax.swing.JTextField
 
@@ -88,7 +91,7 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
                     row("Plugin name:") {
                         textField()
                             .apply {
-                                property.mainClass = "org.example.${property.name?.lowercase()}.${property.name?.capitalize()}Plugin"
+                                property.mainClass = "org.example.${property.name?.lowercase()}.${property.name?.capitalize()}"
                                 component.text = property.name
                                 component.columns = 30
                             }.onChanged {
@@ -132,6 +135,14 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
     @OptIn(DelicateCoroutinesApi::class)
     override fun _init() {
         if (inited) return
+
+        ProgressManager.getInstance().runProcessWithProgressSynchronously(
+            ThrowableComputable {
+                loadModules()
+            },
+            "Downloading modules list", true, context.project
+        )
+
         GlobalScope.launch {
             coroutineScope {
                 checkModulePanel.setModules(ResourceLoader.getModules())

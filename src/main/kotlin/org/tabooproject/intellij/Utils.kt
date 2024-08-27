@@ -1,14 +1,19 @@
 package org.tabooproject.intellij
 
-import com.intellij.psi.*
+import com.intellij.psi.PsiDirectory
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.PsiReference
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jetbrains.kotlin.psi.KtAnnotated
+import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Proxy
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import java.util.concurrent.TimeUnit
 
 fun createFileWithDirectories(baseDir: String, relativePath: String): Path? {
     val fullPath = Paths.get(baseDir, relativePath)
@@ -27,6 +32,8 @@ fun createFileWithDirectories(baseDir: String, relativePath: String): Path? {
 fun createOkHttpClientWithSystemProxy(block: OkHttpClient.Builder.() -> Unit = {}): OkHttpClient {
     val proxyHost = System.getProperty("http.proxyHost")
     val proxyPort = System.getProperty("http.proxyPort")
+
+    println("proxy host: $proxyHost, proxyPort: $proxyPort")
 
     val clientBuilder = OkHttpClient.Builder().apply {
         block(this)
@@ -70,4 +77,18 @@ private inline fun <reified T : PsiElement> PsiElement.findParent(
 
         el = el.parent ?: return null
     }
+}
+
+fun readFromUrl(url: String): String? {
+    val client = createOkHttpClientWithSystemProxy {
+        connectTimeout(10, TimeUnit.SECONDS)
+        readTimeout(10, TimeUnit.SECONDS)
+    }
+
+    val response = client
+        .newCall(getRequest(url))
+        .execute()
+        .takeIf { it.isSuccessful } ?: throw IOException("Failed to get $url")
+
+    return response.body?.string()
 }
