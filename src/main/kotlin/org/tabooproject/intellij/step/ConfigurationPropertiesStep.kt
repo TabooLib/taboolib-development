@@ -91,7 +91,7 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
                     row("Plugin name:") {
                         textField()
                             .apply {
-                                property.mainClass = "org.example.${property.name?.lowercase()}.${property.name?.capitalize()}"
+                                property.mainClass = "org.example.${property.name?.lowercase()}.${property.name?.capitalize()}Plugin"
                                 component.text = property.name
                                 component.columns = 30
                             }.onChanged {
