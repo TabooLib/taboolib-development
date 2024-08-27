@@ -6,8 +6,9 @@ import com.jetbrains.rd.util.info
 import groovy.util.logging.Slf4j
 import kotlinx.serialization.json.*
 import org.jetbrains.annotations.NonNls
+import org.tabooproject.intellij.readFromUrl
 import org.tabooproject.intellij.step.Module
-import java.net.URL
+import java.io.IOException
 import java.security.MessageDigest
 
 /**
@@ -26,22 +27,19 @@ object ResourceLoader {
     }
 
     fun loadModules() {
-        val moduleSha1URL = URL(url.plus("Modules.json.sha1"))
-
         val loadLocalModulesToJson = loadLocalModulesToJson()
+
+        val remoteSha1 = readFromUrl(url.plus("Modules.json.sha1")) ?: throw IOException("Failed to get remote sha1")
 
         if (cacheJson != null) {
             val cacheJsonSha1 = sha1(cacheJson.toString())
-            val remoteSha1 = moduleSha1URL.openStream().use { it.bufferedReader().use { it.readText() } }
             if (remoteSha1.trim() == cacheJsonSha1.trim()) {
                 logger.info { "缓存数据正确,不进行更新" }
                 return
             }
         }
 
-
         sha1(loadLocalModulesToJson.toString()).also {
-            val remoteSha1 = moduleSha1URL.openStream().use { it.bufferedReader().use { it.readText() } }
             if (remoteSha1.trim() == it.trim()) {
                 logger.info { "校验通过,本地文件与远程文件一致,无需更新" }
                 if (cacheJson == null) {
@@ -71,14 +69,11 @@ object ResourceLoader {
     }
 
     fun downloadRemoteJson(): JsonObject {
-        val moduleURL = URL(url.plus("Modules.json"))
-        return moduleURL.openStream().use {
-            it.bufferedReader().use { it.readText() }.let { Json.parseToJsonElement(it).jsonObject }
-        }
+        val jsonString = readFromUrl(url.plus("Modules.json")) ?: throw IOException("Failed to get modules")
+        return Json.parseToJsonElement(jsonString).jsonObject
     }
 
     fun getModules(): Map<String, List<Module>> {
-        loadModules()
         return parseModules(cacheJson ?: error("加载失败"))
     }
 

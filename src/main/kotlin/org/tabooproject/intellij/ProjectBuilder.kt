@@ -5,8 +5,10 @@ import com.intellij.ide.starters.local.StandardAssetsProvider
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.ide.wizard.*
+import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider
+import com.intellij.openapi.util.ThrowableComputable
 import org.tabooproject.intellij.step.ConfigurationPropertiesStep
 import org.tabooproject.intellij.step.OptionalPropertiesStep
 import org.tabooproject.intellij.util.Assets
@@ -37,11 +39,16 @@ class ProjectBuilder : AbstractNewProjectWizardBuilder() {
             // 资源填充
             .nextStep {
                 object : AssetsNewProjectWizardStep(it) {
-
                     override fun setupAssets(project: Project) {
                         addAssets(StandardAssetsProvider().getGradlewAssets())
-                        val directory = project.basePath!!
-                        Template.downloadAndUnzipFile(directory)
+
+                        ProgressManager.getInstance().runProcessWithProgressSynchronously(
+                            ThrowableComputable {
+                                val directory = project.basePath!!
+                                Template.downloadAndUnzipFile(directory)
+                            },
+                            "Downloading template files", true, project
+                        )
                     }
                 }
             }

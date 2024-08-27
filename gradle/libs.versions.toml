@@ -1,0 +1,7 @@
+[versions]
+okhttp="4.12.0"
+freemarker="2.3.32"
+
+[libraries]
+okhttp={ module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+freemarker={module = "org.freemarker:freemarker", version.ref = "freemarker"}
