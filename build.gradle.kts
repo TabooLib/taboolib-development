@@ -7,7 +7,7 @@ plugins {
 
 fun properties(key: String) = project.findProperty(key).toString()
 
-group = "org.tabooproject.intellij"
+group = "org.tabooproject.development"
 version = properties("version")
 
 repositories {

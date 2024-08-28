@@ -1,7 +1,7 @@
 <idea-plugin>
-    <id>org.tabooproject.intellij</id>
+    <id>org.tabooproject.development</id>
 
-    <name>TabooLib Integration</name>
+    <name>TabooLib Development</name>
     <vendor>TabooLib</vendor>
 
     <description><![CDATA[ plugin
@@ -18,11 +18,11 @@
     <depends>org.jetbrains.kotlin</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <moduleBuilder id="TABOO_PROJECT_BUILDER" builderClass="org.tabooproject.intellij.ProjectBuilder"/>
+        <moduleBuilder id="TABOO_PROJECT_BUILDER" builderClass="org.tabooproject.development.ProjectBuilder"/>
         <lang.inspectionSuppressor language="kotlin"
-                                   implementationClass="org.tabooproject.intellij.suppressor.AnnotatedUnusedSuppressor"/>
+                                   implementationClass="org.tabooproject.development.suppressor.AnnotatedUnusedSuppressor"/>
         <lang.inspectionSuppressor language="kotlin"
-                                   implementationClass="org.tabooproject.intellij.suppressor.ExpansionUnusedSuppressor"/>
+                                   implementationClass="org.tabooproject.development.suppressor.ExpansionUnusedSuppressor"/>
     </extensions>
 
 </idea-plugin>

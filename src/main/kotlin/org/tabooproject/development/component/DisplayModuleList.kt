@@ -1,4 +1,4 @@
-package org.tabooproject.intellij.component
+package org.tabooproject.development.component
 
 import com.intellij.ui.CollectionListModel
 import com.intellij.ui.components.JBList

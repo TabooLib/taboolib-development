@@ -1,7 +1,7 @@
-package org.tabooproject.intellij
+package org.tabooproject.development
 
-import org.tabooproject.intellij.step.ConfigurationPropertiesStep
-import org.tabooproject.intellij.step.OptionalPropertiesStep
+import org.tabooproject.development.step.ConfigurationPropertiesStep
+import org.tabooproject.development.step.OptionalPropertiesStep
 
 object FunctionTemplate {
 

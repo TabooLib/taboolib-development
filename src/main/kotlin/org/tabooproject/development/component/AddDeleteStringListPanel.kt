@@ -1,8 +1,8 @@
-package org.tabooproject.intellij.component
+package org.tabooproject.development.component
 
 import com.intellij.openapi.ui.Messages
 import com.intellij.ui.AddDeleteListPanel
-import org.tabooproject.intellij.util.Assets
+import org.tabooproject.development.util.Assets
 
 class AddDeleteStringListPanel(
     title: String,
