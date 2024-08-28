@@ -3,10 +3,15 @@ package org.tabooproject.development.step
 import ai.grazie.utils.capitalize
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
+import com.intellij.ide.wizard.AbstractWizard
+import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressManager
+import com.intellij.openapi.ui.DialogBuilder
+import com.intellij.openapi.ui.ex.MultiLineLabel
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.util.xml.ui.MultiLineTextPanel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
@@ -14,6 +19,7 @@ import kotlinx.coroutines.launch
 import org.tabooproject.development.component.CheckModulePanel
 import org.tabooproject.development.util.ResourceLoader
 import org.tabooproject.development.util.ResourceLoader.loadModules
+import java.lang.reflect.Method
 import javax.swing.JComponent
 import javax.swing.JTextField
 
@@ -132,13 +138,35 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
         }
     }
 
+    private val doPreviousActionMethod: Method by lazy {
+        AbstractWizard::class.java.getDeclaredMethod("doPreviousAction").apply {
+            isAccessible = true
+        }
+    }
+
     @OptIn(DelicateCoroutinesApi::class)
     override fun _init() {
         if (inited) return
 
         ProgressManager.getInstance().runProcessWithProgressSynchronously(
             ThrowableComputable {
-                loadModules()
+                try {
+                    loadModules()
+                } catch (e: Exception) {
+                    val wizard = context.getUserData(AbstractWizard.KEY)
+                    doPreviousActionMethod.invoke(wizard)
+
+                    ApplicationManager.getApplication().invokeLater {
+                        DialogBuilder().apply {
+                            setTitle("Download module list failed")
+                            setCenterPanel(MultiLineLabel(e.message).apply {
+
+                            })
+                            addCancelAction().setText("Cancel")
+                        }.show()
+                    }
+                    throw e
+                }
             },
             "Downloading modules list", false, context.project
         )
