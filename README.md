@@ -6,4 +6,6 @@ TabooLib 的 IntelliJ 集成插件, 目前仅提供内置项目脚手架创建�
 
 ## 额外
 
-> 感谢 @BingZi-233 协助测试插件。
+- 感谢 @EmptyIrony 贡献代码。
+- 感谢 @CoderKuo 贡献代码。
+- 感谢 @BingZi-233 协助测试插件。
