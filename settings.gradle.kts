@@ -5,4 +5,4 @@ pluginManagement {
     }
 }
 
-rootProject.name = "taboolib-intellij"
+rootProject.name = "taboolib-development"

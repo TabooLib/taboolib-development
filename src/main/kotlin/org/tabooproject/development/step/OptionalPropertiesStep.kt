@@ -1,9 +1,9 @@
-package org.tabooproject.intellij.step
+package org.tabooproject.development.step
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.profile.codeInspection.ui.addScrollPaneIfNecessary
 import com.intellij.ui.dsl.builder.*
-import org.tabooproject.intellij.component.AddDeleteStringListPanel
+import org.tabooproject.development.component.AddDeleteStringListPanel
 import javax.swing.JComponent
 
 data class OptionalProperty(

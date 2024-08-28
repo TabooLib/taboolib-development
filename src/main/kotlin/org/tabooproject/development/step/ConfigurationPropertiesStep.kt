@@ -1,4 +1,4 @@
-package org.tabooproject.intellij.step
+package org.tabooproject.development.step
 
 import ai.grazie.utils.capitalize
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
@@ -11,9 +11,9 @@ import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
-import org.tabooproject.intellij.component.CheckModulePanel
-import org.tabooproject.intellij.util.ResourceLoader
-import org.tabooproject.intellij.util.ResourceLoader.loadModules
+import org.tabooproject.development.component.CheckModulePanel
+import org.tabooproject.development.util.ResourceLoader
+import org.tabooproject.development.util.ResourceLoader.loadModules
 import javax.swing.JComponent
 import javax.swing.JTextField
 
@@ -140,7 +140,7 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
             ThrowableComputable {
                 loadModules()
             },
-            "Downloading modules list", true, context.project
+            "Downloading modules list", false, context.project
         )
 
         GlobalScope.launch {

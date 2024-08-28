@@ -1,4 +1,4 @@
-package org.tabooproject.intellij
+package org.tabooproject.development
 
 import com.intellij.psi.PsiDirectory
 import com.intellij.psi.PsiElement

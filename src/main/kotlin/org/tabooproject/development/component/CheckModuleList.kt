@@ -1,10 +1,10 @@
-package org.tabooproject.intellij.component
+package org.tabooproject.development.component
 
 import com.intellij.packageDependencies.ui.TreeModel
 import com.intellij.ui.*
 import com.intellij.ui.CheckboxTree.CheckboxTreeCellRenderer
-import org.tabooproject.intellij.step.ConfigurationPropertiesStep
-import org.tabooproject.intellij.step.Module
+import org.tabooproject.development.step.ConfigurationPropertiesStep
+import org.tabooproject.development.step.Module
 import javax.swing.JScrollPane
 import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode

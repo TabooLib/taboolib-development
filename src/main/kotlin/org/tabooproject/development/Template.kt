@@ -1,10 +1,10 @@
-package org.tabooproject.intellij
+package org.tabooproject.development
 
 import freemarker.cache.StringTemplateLoader
 import freemarker.template.Configuration
 import freemarker.template.Template
-import org.tabooproject.intellij.step.ConfigurationPropertiesStep
-import org.tabooproject.intellij.step.TEMPLATE_DOWNLOAD_MIRROR
+import org.tabooproject.development.step.ConfigurationPropertiesStep
+import org.tabooproject.development.step.TEMPLATE_DOWNLOAD_MIRROR
 import java.io.IOException
 import java.io.StringReader
 import java.io.StringWriter

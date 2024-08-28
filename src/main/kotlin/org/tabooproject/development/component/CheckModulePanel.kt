@@ -1,9 +1,9 @@
-package org.tabooproject.intellij.component
+package org.tabooproject.development.component
 
 import com.intellij.ui.CheckedTreeNode
 import com.intellij.ui.components.JBLabel
 import com.intellij.ui.components.JBPanel
-import org.tabooproject.intellij.step.Module
+import org.tabooproject.development.step.Module
 import java.awt.Dimension
 import java.awt.GridBagConstraints
 import java.awt.GridBagLayout

@@ -1,4 +1,4 @@
-package org.tabooproject.intellij.util
+package org.tabooproject.development.util
 
 import com.intellij.ide.util.PropertiesComponent
 import com.jetbrains.rd.util.getLogger
@@ -6,8 +6,8 @@ import com.jetbrains.rd.util.info
 import groovy.util.logging.Slf4j
 import kotlinx.serialization.json.*
 import org.jetbrains.annotations.NonNls
-import org.tabooproject.intellij.readFromUrl
-import org.tabooproject.intellij.step.Module
+import org.tabooproject.development.readFromUrl
+import org.tabooproject.development.step.Module
 import java.io.IOException
 import java.security.MessageDigest
 

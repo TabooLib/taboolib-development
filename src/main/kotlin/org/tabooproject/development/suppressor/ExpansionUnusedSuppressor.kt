@@ -1,4 +1,4 @@
-package org.tabooproject.intellij.suppressor
+package org.tabooproject.development.suppressor
 
 import com.intellij.codeInspection.InspectionSuppressor
 import com.intellij.codeInspection.SuppressQuickFix

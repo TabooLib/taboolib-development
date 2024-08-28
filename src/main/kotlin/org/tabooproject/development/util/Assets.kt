@@ -1,4 +1,4 @@
-package org.tabooproject.intellij.util
+package org.tabooproject.development.util
 
 import com.intellij.openapi.util.IconLoader
 

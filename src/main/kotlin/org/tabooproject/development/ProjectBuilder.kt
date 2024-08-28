@@ -1,4 +1,4 @@
-package org.tabooproject.intellij
+package org.tabooproject.development
 
 import com.intellij.ide.projectWizard.generators.AssetsNewProjectWizardStep
 import com.intellij.ide.starters.local.StandardAssetsProvider
@@ -9,10 +9,10 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider
 import com.intellij.openapi.util.ThrowableComputable
-import org.tabooproject.intellij.step.ConfigurationPropertiesStep
-import org.tabooproject.intellij.step.OptionalPropertiesStep
-import org.tabooproject.intellij.util.Assets
-import org.tabooproject.intellij.util.NewProjectWizardChainStep.Companion.nextStep
+import org.tabooproject.development.step.ConfigurationPropertiesStep
+import org.tabooproject.development.step.OptionalPropertiesStep
+import org.tabooproject.development.util.Assets
+import org.tabooproject.development.util.NewProjectWizardChainStep.Companion.nextStep
 import javax.swing.Icon
 
 

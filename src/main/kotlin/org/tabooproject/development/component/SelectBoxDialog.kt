@@ -1,4 +1,4 @@
-package org.tabooproject.intellij.component
+package org.tabooproject.development.component
 
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.DialogWrapper

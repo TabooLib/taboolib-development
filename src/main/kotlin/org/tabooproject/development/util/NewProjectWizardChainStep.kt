@@ -1,4 +1,4 @@
-package org.tabooproject.intellij.util
+package org.tabooproject.development.util
 
 import com.intellij.ide.wizard.AbstractNewProjectWizardStep
 import com.intellij.ide.wizard.NewProjectWizardStep
