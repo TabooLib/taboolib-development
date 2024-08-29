@@ -47,7 +47,7 @@ class ProjectBuilder : AbstractNewProjectWizardBuilder() {
                                 val directory = project.basePath!!
                                 Template.downloadAndUnzipFile(directory)
                             },
-                            "Downloading template files", true, project
+                            "Downloading template files", false, project
                         )
                     }
                 }
@@ -59,6 +59,7 @@ class ProjectBuilder : AbstractNewProjectWizardBuilder() {
     }
 
     override fun cleanup() {
+        super.cleanup()
         ConfigurationPropertiesStep.refreshTemporaryData()
         OptionalPropertiesStep.refreshTemporaryData()
     }
