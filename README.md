@@ -6,6 +6,11 @@ TabooLib 的 IntelliJ 集成插件, 目前仅提供内置项目脚手架创建�
 
 因事业繁忙暂时无力维护插件，将会在日后重构代码与新增功能。
 
+# 构建
+使用 ./gradlew buildPlugin 进行构建
+
+构建产物位于 libs/distributions
+
 ## 额外
 
 - 感谢 [EmptyIrony](https://github.com/EmptyIrony) 贡献代码。
