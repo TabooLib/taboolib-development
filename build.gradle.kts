@@ -28,7 +28,7 @@ intellij {
         "Kotlin"
     )
 
-    pluginName.set("Taboo Integration")
+    pluginName.set("Taboo Development")
     updateSinceUntilBuild.set(false)
 }
 
@@ -42,16 +42,6 @@ kotlin {
 
 
 tasks {
-    shadowJar {
-        archiveClassifier.set("all")
-        relocate("freemarker", "org.tabooproject.intellij.freemarker")
-        relocate("okhttp3", "org.tabooproject.intellij.okhttp3")
-        relocate("okio", "org.tabooproject.intellij.okio")
-        dependencies {
-            exclude(dependency("org.jetbrains.kotlin:::"))
-            exclude(dependency("org.jetbrains:::"))
-        }
-    }
 
     build {
         dependsOn(shadowJar)

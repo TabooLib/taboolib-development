@@ -27,7 +27,7 @@ class ProjectBuilder : AbstractNewProjectWizardBuilder() {
     }
 
     override fun getPresentableName(): String {
-        return "Taboo Integration"
+        return "Taboo Development"
     }
 
     @Suppress("UnstableApiUsage")
