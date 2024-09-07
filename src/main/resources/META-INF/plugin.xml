@@ -34,6 +34,9 @@
                          level="WARNING"
                          hasStaticDescription="false"
                          implementationClass="org.tabooproject.development.inspection.DatabaseWorkspaceInspection"/>
+
+        <completion.contributor language="kotlin"
+                                implementationClass="org.tabooproject.development.completion.InfoFuncCompletion"/>
     </extensions>
 
     <resource-bundle/>
