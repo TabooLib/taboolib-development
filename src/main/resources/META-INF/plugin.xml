@@ -20,10 +20,21 @@
 
     <extensions defaultExtensionNs="com.intellij">
         <moduleBuilder id="TABOO_PROJECT_BUILDER" builderClass="org.tabooproject.development.ProjectBuilder"/>
+
+        <!-- Suppressor -->
         <lang.inspectionSuppressor language="kotlin"
                                    implementationClass="org.tabooproject.development.suppressor.AnnotatedUnusedSuppressor"/>
         <lang.inspectionSuppressor language="kotlin"
                                    implementationClass="org.tabooproject.development.suppressor.ExpansionUnusedSuppressor"/>
+
+        <localInspection displayName="Missing any method call after workspace()"
+                         language="kotlin"
+                         groupName="TabooLib"
+                         enabledByDefault="true"
+                         level="WARNING"
+                         hasStaticDescription="false"
+                         implementationClass="org.tabooproject.development.inspection.DatabaseWorkspaceInspection"/>
     </extensions>
 
+    <resource-bundle/>
 </idea-plugin>
