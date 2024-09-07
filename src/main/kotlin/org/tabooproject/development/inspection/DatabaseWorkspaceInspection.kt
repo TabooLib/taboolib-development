@@ -14,9 +14,9 @@ class DatabaseWorkspaceInspection: AbstractKotlinInspection() {
     override fun buildVisitor(holder: ProblemsHolder, isOnTheFly: Boolean): KtVisitorVoid {
         return object : KtVisitorVoid() {
             override fun visitCallExpression(expression: KtCallExpression) {
-                super.visitCallExpression(expression)
                 val calleeExpression = expression.calleeExpression?.text
                 if (calleeExpression == "workspace") {
+
                     val qualifiedExpression = expression.parent as? KtDotQualifiedExpression
                     val receiverExpression = qualifiedExpression?.receiverExpression
                     val context = receiverExpression?.analyze(BodyResolveMode.PARTIAL)
@@ -37,7 +37,7 @@ class DatabaseWorkspaceInspection: AbstractKotlinInspection() {
                             if (!hasRunCall) {
                                 holder.registerProblem(
                                     expression,
-                                    "Calling 'workspace' without any method",
+                                    "Not use any functions after 'workspace'",
                                     ProblemHighlightType.WARNING,
                                     AddRunQuickFix()
                                 )
