@@ -1,12 +1,21 @@
 package org.tabooproject.development
 
-import com.intellij.psi.PsiDirectory
-import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.PsiReference
+import com.intellij.openapi.module.ModuleUtilCore
+import com.intellij.openapi.roots.OrderEnumerator
+import com.intellij.psi.*
+import com.intellij.psi.util.PsiTreeUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
+import org.jetbrains.kotlin.descriptors.ClassDescriptor
+import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
 import org.jetbrains.kotlin.psi.KtAnnotated
+import org.jetbrains.kotlin.psi.KtCallExpression
+import org.jetbrains.kotlin.psi.KtFile
+import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.resolve.BindingContext
+import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
+import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
+import org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Proxy
@@ -89,4 +98,15 @@ fun readFromUrl(url: String): String? {
         .takeIf { it.isSuccessful } ?: throw IOException("Failed to get $url")
 
     return response.body?.string()
+}
+
+fun PsiClass.getContainingPackageName(): String? {
+    val containingPackage = containingClass
+    return containingPackage?.qualifiedName
+}
+
+private fun isPackageInProject(file: PsiFile, packageName: String): Boolean {
+    val module = ModuleUtilCore.findModuleForPsiElement(file) ?: return false
+    val orderEnumerator = OrderEnumerator.orderEntries(module).recursively().librariesOnly().classes()
+    return orderEnumerator.urls.any { it.contains(packageName.replace('.', '/')) }
 }
