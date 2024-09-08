@@ -8,6 +8,7 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.psi.PsiDocumentManager
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.util.PlatformIcons
+import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
 import org.jetbrains.kotlin.psi.KtImportDirective
 import org.jetbrains.kotlin.psi.KtPsiFactory
@@ -17,6 +18,10 @@ import org.jetbrains.kotlin.resolve.ImportPath
 class InfoFuncCompletion: CompletionContributor() {
 
     override fun fillCompletionVariants(parameters: CompletionParameters, result: CompletionResultSet) {
+        val position = parameters.position
+        val parent = position.parent
+        // 确保前面是个对象, 否则不提供打印
+        (parent.parent as? KtDotQualifiedExpression)?.receiverExpression ?: return
         result.addElement(
             PrioritizedLookupElement.withPriority(
                 LookupElementBuilder.create("info")
