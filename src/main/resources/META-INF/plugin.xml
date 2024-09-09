@@ -34,6 +34,15 @@
                          level="WARNING"
                          hasStaticDescription="false"
                          implementationClass="org.tabooproject.development.inspection.DatabaseWorkspaceInspection"/>
+
+        <completion.contributor language="kotlin"
+                                implementationClass="org.tabooproject.development.completion.LogFuncCompletion"/>
+        <completion.contributor language="kotlin"
+                                implementationClass="org.tabooproject.development.completion.ReflectMethodReflectCompletion"
+        />
+        <completion.confidence language="kotlin"
+                               implementationClass="org.tabooproject.development.completion.TabooLiteralConfidence"
+                               order="before kotlinSkipAutopopupInStrings"/>
     </extensions>
 
     <resource-bundle/>
