@@ -102,13 +102,7 @@ object GetPropertyReflectCompletionProvider : CompletionProvider<CompletionParam
         if (primitiveType == null && returnTypeElement.canonicalText != "java.lang.String") {
             ktFile.checkAndImportPackage(returnTypeElement.canonicalText)
         }
-        val shortName = if (primitiveType != null) {
-            PsiTypes.primitiveTypes().firstOrNull {
-                it == returnTypeElement
-            }?.name?.capitalize()
-        } else {
-            returnTypeElement.presentableText
-        } ?: return
+        val shortName = primitiveType?.name?.capitalize() ?: returnTypeElement.presentableText
 
         // 如果没有泛型, 就要添加泛型
         if (generics == null) {
