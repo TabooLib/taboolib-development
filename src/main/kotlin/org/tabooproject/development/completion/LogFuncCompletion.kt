@@ -71,7 +71,7 @@ class LogFuncCompletion: CompletionContributor() {
                             context.document.replaceString(
                                 parent.textRange.startOffset,
                                 tailOffset,
-                                "info($objectText)"
+                                "warning($objectText)"
                             )
                             editor.caretModel
                                 .moveToOffset(parent.textRange.startOffset + 5 + objectText.length)
