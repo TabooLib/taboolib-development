@@ -98,10 +98,8 @@ object GetPropertyReflectCompletionProvider : CompletionProvider<CompletionParam
 
         val returnTypeElement = field.type
         // 导入包
-        val primitiveType = PsiTypes.primitiveTypes().firstOrNull {
-            it == returnTypeElement
-        }
-        if (primitiveType != null && returnTypeElement.canonicalText != "java.lang.String") {
+        val primitiveType = returnTypeElement as? PsiPrimitiveType
+        if (primitiveType == null && returnTypeElement.canonicalText != "java.lang.String") {
             ktFile.checkAndImportPackage(returnTypeElement.canonicalText)
         }
         val shortName = if (primitiveType != null) {
