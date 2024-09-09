@@ -38,7 +38,7 @@
         <completion.contributor language="kotlin"
                                 implementationClass="org.tabooproject.development.completion.LogFuncCompletion"/>
         <completion.contributor language="kotlin"
-                                implementationClass="org.tabooproject.development.completion.InvokeMethodReflectCompletion"
+                                implementationClass="org.tabooproject.development.completion.ReflectMethodReflectCompletion"
         />
         <completion.confidence language="kotlin"
                                implementationClass="org.tabooproject.development.completion.TabooLiteralConfidence"

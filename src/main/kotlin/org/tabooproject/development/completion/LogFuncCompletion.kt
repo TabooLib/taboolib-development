@@ -2,17 +2,13 @@ package org.tabooproject.development.completion
 
 import com.intellij.codeInsight.completion.*
 import com.intellij.codeInsight.lookup.LookupElementBuilder
-import com.intellij.lang.java.JavaLanguage
 import com.intellij.psi.PsiDocumentManager
-import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiUtilCore
 import com.intellij.util.PlatformIcons
 import org.jetbrains.kotlin.idea.KotlinLanguage
 import org.jetbrains.kotlin.psi.KtDotQualifiedExpression
 import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtImportDirective
-import org.jetbrains.kotlin.psi.KtPsiFactory
-import org.jetbrains.kotlin.resolve.ImportPath
+import org.tabooproject.development.checkAndImportPackage
 
 
 class LogFuncCompletion: CompletionContributor() {
@@ -85,17 +81,7 @@ class LogFuncCompletion: CompletionContributor() {
                             e.printStackTrace()
                         }
 
-                        // 检查和引入info包
-                        val import =
-                            PsiTreeUtil.findChildrenOfType(ktFile, KtImportDirective::class.java)
-                        val hasImport =
-                            import.any { it.importPath?.pathStr == "taboolib.common.platform.function.${name}" }
-                        if (!hasImport) {
-                            val factory = KtPsiFactory(context.project)
-                            val importDirective =
-                                factory.createImportDirective(ImportPath.fromString("taboolib.common.platform.function.${name}"))
-                            ktFile.importList?.add(importDirective)
-                        }
+                        ktFile.checkAndImportPackage("taboolib.common.platform.function.${name}")
                     }
                 }
             }

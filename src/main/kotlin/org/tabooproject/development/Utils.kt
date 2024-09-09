@@ -3,19 +3,17 @@ package org.tabooproject.development
 import com.intellij.openapi.module.ModuleUtilCore
 import com.intellij.openapi.roots.OrderEnumerator
 import com.intellij.psi.*
+import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
-import org.jetbrains.kotlin.psi.KtAnnotated
-import org.jetbrains.kotlin.psi.KtCallExpression
-import org.jetbrains.kotlin.psi.KtFile
-import org.jetbrains.kotlin.psi.KtImportDirective
+import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.psi.*
 import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.calls.callUtil.getResolvedCall
+import org.jetbrains.kotlin.resolve.ImportPath
+import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
 import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
-import org.jetbrains.kotlin.utils.IDEAPluginsCompatibilityAPI
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Proxy
@@ -105,8 +103,50 @@ fun PsiClass.getContainingPackageName(): String? {
     return containingPackage?.qualifiedName
 }
 
+fun isReflectContext(context: PsiElement): Boolean {
+    val expression = PsiTreeUtil.findFirstParent(context) {
+        it is KtCallExpression
+    } as? KtCallExpression ?: return false
+    val name = expression.calleeExpression?.text ?: return false
+    if (name == "invokeMethod" || name == "getProperty" || name == "setProperty") {
+        return true
+    }
+
+    return false
+}
+
 private fun isPackageInProject(file: PsiFile, packageName: String): Boolean {
     val module = ModuleUtilCore.findModuleForPsiElement(file) ?: return false
     val orderEnumerator = OrderEnumerator.orderEntries(module).recursively().librariesOnly().classes()
     return orderEnumerator.urls.any { it.contains(packageName.replace('.', '/')) }
+}
+
+fun KtFile.checkAndImportPackage(path: String) {
+    // 检查和引入info包
+    val import =
+        PsiTreeUtil.findChildrenOfType(this, KtImportDirective::class.java)
+    val hasImport =
+        import.any { it.importPath?.pathStr == path }
+    if (!hasImport) {
+        val factory = KtPsiFactory(project)
+        val importDirective =
+            factory.createImportDirective(ImportPath.fromString(path))
+        importList?.add(importDirective)
+    }
+}
+
+val KtDotQualifiedExpression.fqName: String?
+    get() {
+        val receiverExpression = receiverExpression
+        val bindingContext = receiverExpression.analyze(BodyResolveMode.PARTIAL)
+        val type = bindingContext.get(BindingContext.EXPRESSION_TYPE_INFO, receiverExpression)?.type
+        val classDescriptor = type?.constructor?.declarationDescriptor as? ClassDescriptor
+        return classDescriptor?.fqNameSafe?.asString() ?: return null
+    }
+
+fun KtDotQualifiedExpression.getPsiClass(): PsiClass? {
+    return JavaPsiFacade.getInstance(project)
+        .findClass(fqName ?: return null, GlobalSearchScope.allScope(project)) ?: run {
+        return null
+    }
 }
