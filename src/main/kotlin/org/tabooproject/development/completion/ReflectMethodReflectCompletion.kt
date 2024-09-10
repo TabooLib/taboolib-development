@@ -6,10 +6,12 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder
 import com.intellij.lang.jvm.JvmModifier
 import com.intellij.patterns.PlatformPatterns
 import com.intellij.psi.*
+import com.intellij.psi.search.searches.ClassInheritorsSearch
 import com.intellij.psi.util.PsiTreeUtil
 import com.intellij.psi.util.PsiTypesUtil
 import com.intellij.util.PlatformIcons
 import com.intellij.util.ProcessingContext
+import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.uast.kotlin.desc
 import org.tabooproject.development.checkAndImportPackage
@@ -30,6 +32,8 @@ class ReflectMethodReflectCompletion : CompletionContributor() {
             GetPropertyReflectCompletionProvider
         )
     }
+
+
 }
 
 object GetPropertyReflectCompletionProvider : CompletionProvider<CompletionParameters>() {
@@ -61,12 +65,29 @@ object GetPropertyReflectCompletionProvider : CompletionProvider<CompletionParam
                     parent.text.substring(0, parent.text.length - CompletionUtil.DUMMY_IDENTIFIER_TRIMMED.length)
                 val properties = currentText.split("/").toMutableList()
 
-                val fields = searchProperty(properties, clazz)
-                fields.forEach { field ->
+                val searchClasses = if (clazz.isInterface) {
+                    ClassInheritorsSearch.search(
+                        clazz
+                    ).toList()
+                } else {
+                    listOf(clazz)
+                }
+
+                val fields = ArrayList<Pair<PsiField, PsiClass>>()
+
+                searchClasses.forEach { searchClass ->
+                    fields += searchProperty(properties, searchClass)
+                }
+
+                fields.forEach { (field, fromClass) ->
                     result.addElement(
                         LookupElementBuilder.create(field.name)
                             .withIcon(PlatformIcons.FIELD_ICON)
-                            .withTailText(" ${field.type.canonicalText} ", true)
+                            .withTailText(" ${field.type.presentableText} ${
+                                if (clazz != fromClass) {
+                                    "from ${fromClass.kotlinFqName?.asString() ?: "unknown"}"
+                                } else ""
+                            }", true)
                             .withInsertHandler handler@{ context, _ ->
                                 handleInsert(context, field)
                             }
@@ -113,19 +134,21 @@ object GetPropertyReflectCompletionProvider : CompletionProvider<CompletionParam
         }
     }
 
-    private fun searchProperty(list: MutableList<String>, currentPackage: PsiClass): Array<PsiField> {
+    private fun searchProperty(list: MutableList<String>, currentPackage: PsiClass): Array<Pair<PsiField, PsiClass>> {
         if (list.isEmpty()) return emptyArray()
 
         if (list.size == 1) {
-            return currentPackage.fields
+            return currentPackage.fields.map { it to currentPackage }.toTypedArray()
         } else {
             val fieldName = list.removeFirst()
             val field = currentPackage.fields.firstOrNull {
                 it.name == fieldName
             } ?: return emptyArray()
+
             val psiClass = field.type.let {
                 PsiTypesUtil.getPsiClass(it)
             } ?: return emptyArray()
+
             return searchProperty(list, psiClass)
         }
     }
