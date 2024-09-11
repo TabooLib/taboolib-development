@@ -4,8 +4,8 @@
     <name>TabooLib Development</name>
     <vendor>TabooLib</vendor>
 
-    <description><![CDATA[ plugin
-        This IntelliJ plugin provides a Project Builder for <a href="https://github.com/TabooLib/taboolib">TabooLib</a>, enabling quick creation of TabooLib projects,
+    <description><![CDATA[
+        This IntelliJ-based plugin provides a Project Builder for <a href="https://github.com/TabooLib/taboolib">TabooLib</a>, enabling quick creation of TabooLib projects,
         with potential future integrations of more support specifically tailored for TabooLib projects.
     ]]></description>
 
