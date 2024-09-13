@@ -44,6 +44,9 @@ object Template {
             .execute()
             .takeIf { it.isSuccessful } ?: throw IOException("Failed to download file")
 
+        // only get once version
+        val data = FunctionTemplate.getBuildProperty()
+
         response.body?.byteStream()?.let { inputStream ->
             ZipInputStream(inputStream).use { zip ->
                 var entry = zip.nextEntry
@@ -52,7 +55,7 @@ object Template {
                         val entryName = entry.name.substringAfter("taboolib-sdk-idea-template/")
                         if (entryName.endsWith(".ftl")) {
                             val contentBytes = zip.readBytes()
-                            processEntry(entryName, contentBytes, baseDir)
+                            processEntry(entryName, contentBytes, baseDir, data)
                         }
                     }
                     zip.closeEntry()
@@ -62,10 +65,9 @@ object Template {
         } ?: throw IOException("Response body is null")
     }
 
-    private fun processEntry(entryName: String, contentBytes: ByteArray, baseDir: String) {
+    private fun processEntry(entryName: String, contentBytes: ByteArray, baseDir: String, buildProperty: Map<String, Any>) {
         val path = entryName.replace(".ftl", "")
         val templateFile = TEMPLATE_FILES[path] ?: return
-        val data = FunctionTemplate.getBuildProperty()
 
         val cfg = Configuration(Configuration.VERSION_2_3_31).apply {
             templateLoader = StringTemplateLoader().also { it.putTemplate(templateFile.node, String(contentBytes, StandardCharsets.UTF_8)) }
@@ -73,7 +75,7 @@ object Template {
         }
 
         val finalContent = StringWriter().use { writer ->
-            Template(templateFile.node, StringReader(String(contentBytes, StandardCharsets.UTF_8)), cfg).process(data, writer)
+            Template(templateFile.node, StringReader(String(contentBytes, StandardCharsets.UTF_8)), cfg).process(buildProperty, writer)
             writer.toString()
         }
 
