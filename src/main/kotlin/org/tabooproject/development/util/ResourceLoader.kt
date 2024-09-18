@@ -20,7 +20,7 @@ object ResourceLoader {
 
     val logger = getLogger<ResourceLoader>()
 
-    val url = "https://raw.githubusercontent.com/TabooLib/taboolib-sdk/idea-template-6.2/Resources/"
+    val url = "https://raw.githubusercontent.com/TabooLib/taboolib-sdk/idea-template/Resources/"
 
     var cacheJson = PropertiesComponent.getInstance().getValue("modules_json")?.let<@NonNls String, JsonObject> {
         Json.parseToJsonElement(it).jsonObject
