@@ -47,7 +47,7 @@ object FunctionTemplate {
         }
     }
 
-    private const val TABOO_GRADLE_PROPERTIES_FILE_URL = "https://raw.githubusercontent.com/TabooLib/taboolib/master/gradle.properties"
+    private const val TABOO_GRADLE_PROPERTIES_FILE_URL = "https://raw.githubusercontent.com/TabooLib/taboolib/HEAD/gradle.properties"
 
     private val tabooLatestVersion: String
         get() {

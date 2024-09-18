@@ -2,183 +2,184 @@
   "modules": {
     "basic": [
       {
-        "name": "Chat",
-        "desc": "消息模块",
-        "id": "CHAT"
-      },
-      {
-        "name": "Configuration",
-        "desc": "配置模块",
-        "id": "CONFIGURATION"
-      },
-      {
-        "name": "Lang",
-        "desc": "语言模块",
-        "id": "LANG"
-      },
-      {
-        "name": "Kether",
-        "desc": "kether Script 模块",
-        "id": "KETHER"
-      },
-      {
-        "name": "Metrics",
-        "desc": "匿名统计模块，目前使用的是bstats.org服务",
-        "id": "METRICS"
-      },
-      {
-        "name": "Database",
-        "desc": "数据库模块",
-        "id": "DATABASE"
-      },
-      {
-        "name": "NMS",
-        "desc": "NMS模块",
-        "id": "NMS"
-      },
-      {
-        "name": "NMS_UTIL",
-        "desc": "NMS工具模块",
-        "id": "NMS_UTIL"
-      },
-      {
-        "name": "Navigation",
-        "desc": "navigation module",
-        "id": "NAVIGATION"
-      },
-      {
-        "name": "AI",
-        "desc": "生物AI模块",
-        "id": "AI"
-      },
-      {
-        "name": "UI",
-        "desc": "UI模块",
-        "id": "UI"
-      },
-      {
-        "name": "Effect",
-        "desc": "特效模块",
-        "id": "EFFECT"
-      },
-      {
-        "name": "Porticus",
-        "desc": "Porticus 模块",
-        "id": "PORTICUS"
-      }
-    ],
-    "expansion": [
-      {
-        "name": "expansion_redis",
-        "desc": "拓展-Redis功能模块",
-        "id": "EXPANSION_REDIS"
-      },
-      {
-        "name": "expansion_command_helper",
-        "desc": "拓展-命令帮助信息功能模块",
-        "id": "EXPANSION_COMMAND_HELPER"
-      },
-      {
-        "name": "expansion_geek_tool",
-        "desc": "拓展-Geek工具功能模块",
-        "id": "EXPANSION_GEEK_TOOL"
-      },
-      {
-        "name": "expansion_ioc",
-        "desc": "拓展-IOC功能模块",
-        "id": "EXPANSION_IOC"
-      },
-      {
-        "name": "expansion_javascript",
-        "desc": "拓展-JavaScript执行环境模块",
-        "id": "EXPANSION_JAVASCRIPT"
-      },
-      {
-        "name": "expansion_player_database",
-        "desc": "拓展-玩家数据库模块",
-        "id": "EXPANSION_PLAYER_DATABASE"
-      },
-      {
-        "name": "expansion_player_fake_op",
-        "desc": "player fake op expansion module",
-        "id": "EXPANSION_PLAYER_FAKE_OP"
-      },
-      {
-        "name": "expansion_submit_chain",
-        "desc": "submit chain expansion module",
-        "id": "EXPANSION_SUBMIT_CHAIN"
-      },
-      {
-        "name": "expansion_ptc",
-        "desc": "ptc expansion module",
-        "id": "EXPANSION_PTC"
-      },
-      {
-        "name": "expansion_ptc_object",
-        "desc": "ptc object expansion module",
-        "id": "EXPANSION_PTC_OBJECT"
-      },
-      {
-        "name": "expansion_jexl",
-        "desc": "jexl expansion module",
-        "id": "EXPANSION_JEXL"
-      },
-      {
-        "name": "expansion_folia",
-        "desc": "拓展-Folia支持功能模块",
-        "id": "EXPANSION_FOLIA"
+        "name": "Basic",
+        "desc": "基础模块：配置文件，任务链",
+        "id": "Basic"
       }
     ],
     "platform": [
       {
-        "name": "application",
-        "desc": "平台-独立应用",
-        "id": "APPLICATION"
+        "name": "AfyBroker",
+        "desc": "Afybroker 平台",
+        "id": "AfyBroker"
       },
       {
-        "name": "bukkit",
-        "desc": "平台-Bukkit",
-        "id": "BUKKIT"
+        "name": "App",
+        "desc": "独立程序",
+        "id": "App"
       },
       {
-        "name": "bukkit_hook",
-        "desc": "Bukkit Hook聚合模块",
-        "id": "BUKKIT_HOOK"
+        "name": "Bukkit",
+        "desc": "Bukkit 平台",
+        "id": "Bukkit"
       },
       {
-        "name": "bukkit_util",
-        "desc": "Bukkit Util聚合模块",
-        "id": "BUKKIT_UTIL"
+        "name": "BungeeCord",
+        "desc": "BungeeCord 平台",
+        "id": "BungeeCord"
       },
       {
-        "name": "bukkit_xseries",
-        "desc": "Bukkit XSeries模块",
-        "id": "BUKKIT_XSERIES"
+        "name": "Velocity",
+        "desc": "Velocity 平台",
+        "id": "Velocity"
+      }
+    ],
+    "bukkit": [
+      {
+        "name": "BukkitFakeOp",
+        "desc": "Bukkit 虚拟 OP 工具",
+        "id": "BukkitFakeOp"
       },
       {
-        "name": "bungee",
-        "desc": "平台-Bungee",
-        "id": "BUNGEE"
+        "name": "BukkitHook",
+        "desc": "Bukkit 与 Vault、PlaceholderAPI 等插件交互",
+        "id": "BukkitHook"
       },
       {
-        "name": "velocity",
-        "desc": "平台-Velocity",
-        "id": "VELOCITY"
+        "name": "BukkitNavigation",
+        "desc": "Bukkit 寻路工具",
+        "id": "BukkitNavigation"
       },
       {
-        "name": "bukkit_all",
-        "desc": "Bukkit ALL聚合模块",
-        "id": "BUKKIT_ALL"
+        "name": "BukkitUI",
+        "desc": "Bukkit 箱子菜单",
+        "id": "BukkitUI"
       },
       {
-        "name": "universal",
-        "desc": "universal",
-        "id": "UNIVERSAL"
+        "name": "BukkitUtil",
+        "desc": "Bukkit 扩展工具",
+        "id": "BukkitUtil"
       },
       {
-        "name": "universal_database",
-        "desc": "universal database",
-        "id": "UNIVERSAL_DATABASE"
+        "name": "XSeries",
+        "desc": "XSeries",
+        "id": "XSeries"
+      },
+      {
+        "name": "XSeriesItem",
+        "desc": "XSeries（XSkull 及 ItemBuilder）",
+        "id": "XSeriesItem"
+      },
+      {
+        "name": "BukkitNMS",
+        "desc": "Bukkit NMS",
+        "id": "BukkitNMS"
+      },
+      {
+        "name": "BukkitNMSUtil",
+        "desc": "Bukkit NMS 扩展工具",
+        "id": "BukkitNMSUtil"
+      },
+      {
+        "name": "BukkitNMSItemTag",
+        "desc": "Bukkit NMS ItemTag 工具",
+        "id": "BukkitNMSItemTag"
+      },
+      {
+        "name": "BukkitNMSDataSerializer",
+        "desc": "Bukkit NMS 数据序列化工具",
+        "id": "BukkitNMSDataSerializer"
+      },
+      {
+        "name": "BukkitNMSEntityAI",
+        "desc": "Bukkit NMS 实体 AI",
+        "id": "BukkitNMSEntityAI"
+      }
+    ],
+    "minecraft": [
+      {
+        "name": "MinecraftChat",
+        "desc": "Minecraft 文本工具",
+        "id": "MinecraftChat"
+      },
+      {
+        "name": "MinecraftEffect",
+        "desc": "Minecraft 效果工具",
+        "id": "MinecraftEffect"
+      },
+      {
+        "name": "CommandHelper",
+        "desc": "指令帮助",
+        "id": "CommandHelper"
+      },
+      {
+        "name": "I18n",
+        "desc": "国际化接口",
+        "id": "I18n"
+      },
+      {
+        "name": "Metrics",
+        "desc": "BStats 数据统计",
+        "id": "Metrics"
+      },
+      {
+        "name": "Porticus",
+        "desc": "BungeeCord 通讯",
+        "id": "Porticus"
+      }
+    ],
+    "database": [
+      {
+        "name": "Database",
+        "desc": "数据库基础模块",
+        "id": "Database"
+      },
+      {
+        "name": "DatabaseAlkaidRedis",
+        "desc": "Alkaid Redis",
+        "id": "DatabaseAlkaidRedis"
+      },
+      {
+        "name": "DatabaseIoc",
+        "desc": "IOC",
+        "id": "DatabaseIoc"
+      },
+      {
+        "name": "DatabaseLettuceRedis",
+        "desc": "Lettuce Redis",
+        "id": "DatabaseLettuceRedis"
+      },
+      {
+        "name": "DatabasePlayer",
+        "desc": "玩家数据库",
+        "id": "DatabasePlayer"
+      },
+      {
+        "name": "DatabasePtc",
+        "desc": "Persistent Container",
+        "id": "DatabasePtc"
+      },
+      {
+        "name": "DatabasePtcObject",
+        "desc": "Persistent Container With Object",
+        "id": "DatabasePtcObject"
+      }
+    ],
+    "script": [
+      {
+        "name": "Kether",
+        "desc": "Kether 脚本引擎",
+        "id": "Kether"
+      },
+      {
+        "name": "JavaScript",
+        "desc": "Javascript 脚本环境",
+        "id": "JavaScript"
+      },
+      {
+        "name": "Jexl",
+        "desc": "Jexl 脚本环境",
+        "id": "Jexl"
       }
     ]
   }

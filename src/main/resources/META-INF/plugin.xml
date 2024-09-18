@@ -10,7 +10,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
-        Please report issues to <a href="https://github.com/TabooLib/taboolib-intellij/issues">the issue tracker</a>!
+        Compatible with TabooLib version 6.2.x</a>!
     ]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>

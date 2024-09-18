@@ -48,7 +48,7 @@ class CheckModuleList(private val displayModuleList: DisplayModuleList) : JScrol
 
                     textRenderer.append(
                         ColoredText.singleFragment(
-                            module.name, SimpleTextAttributes(
+                            module.desc ?: module.name, SimpleTextAttributes(
                                 SimpleTextAttributes.STYLE_PLAIN,
                                 JBColor.GRAY
                             )
