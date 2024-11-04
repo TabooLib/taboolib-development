@@ -10,13 +10,17 @@
     ]]></description>
 
     <change-notes><![CDATA[
-        Compatible with TabooLib version 6.2.x</a>!
+        Compatible with k2</a>!
     ]]></change-notes>
 
     <depends>com.intellij.modules.platform</depends>
     <depends>com.intellij.modules.java</depends>
     <depends>com.intellij.modules.lang</depends>
     <depends>org.jetbrains.kotlin</depends>
+
+    <extensions defaultExtensionNs="org.jetbrains.kotlin">
+        <supportsKotlinPluginMode supportsK2="true" />
+    </extensions>
 
     <extensions defaultExtensionNs="com.intellij">
         <moduleBuilder id="TABOO_PROJECT_BUILDER" builderClass="org.tabooproject.development.ProjectBuilder"/>

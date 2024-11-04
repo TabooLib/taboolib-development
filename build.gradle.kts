@@ -1,6 +1,6 @@
 plugins {
     id("java")
-    kotlin("jvm") version "1.9.25"
+    kotlin("jvm") version "2.0.20"
     id("org.jetbrains.intellij") version "1.17.4"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
@@ -20,7 +20,7 @@ dependencies {
 }
 
 intellij {
-    version.set("2024.2.0.2")
+    version.set("2024.2.1")
 
     plugins.addAll(
         "java",
