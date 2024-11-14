@@ -7,13 +7,9 @@ import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
-import org.jetbrains.kotlin.descriptors.ClassDescriptor
-import org.jetbrains.kotlin.idea.caches.resolve.analyze
+import org.jetbrains.kotlin.name.FqName
 import org.jetbrains.kotlin.psi.*
-import org.jetbrains.kotlin.resolve.BindingContext
 import org.jetbrains.kotlin.resolve.ImportPath
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.net.Proxy
@@ -121,12 +117,15 @@ private fun isPackageInProject(file: PsiFile, packageName: String): Boolean {
     return orderEnumerator.urls.any { it.contains(packageName.replace('.', '/')) }
 }
 
+
 fun KtFile.checkAndImportPackage(path: String) {
+    val fqName = FqName(path)
+
     // 检查和引入info包
     val import =
         PsiTreeUtil.findChildrenOfType(this, KtImportDirective::class.java)
     val hasImport =
-        import.any { it.importPath?.pathStr == path }
+        import.any { it.importedFqName == fqName }
     if (!hasImport) {
         val factory = KtPsiFactory(project)
         val importDirective =
@@ -137,11 +136,7 @@ fun KtFile.checkAndImportPackage(path: String) {
 
 val KtDotQualifiedExpression.fqName: String?
     get() {
-        val receiverExpression = receiverExpression
-        val bindingContext = receiverExpression.analyze(BodyResolveMode.PARTIAL)
-        val type = bindingContext.get(BindingContext.EXPRESSION_TYPE_INFO, receiverExpression)?.type
-        val classDescriptor = type?.constructor?.declarationDescriptor as? ClassDescriptor
-        return classDescriptor?.fqNameSafe?.asString() ?: return null
+        return text
     }
 
 fun KtDotQualifiedExpression.getPsiClass(): PsiClass? {

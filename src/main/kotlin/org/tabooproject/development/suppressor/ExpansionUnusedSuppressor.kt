@@ -4,12 +4,9 @@ import com.intellij.codeInspection.InspectionSuppressor
 import com.intellij.codeInspection.SuppressQuickFix
 import com.intellij.psi.PsiElement
 import com.intellij.psi.util.PsiTreeUtil
-import org.jetbrains.kotlin.idea.caches.resolve.getResolutionFacade
+import org.jetbrains.kotlin.analysis.api.analyze
 import org.jetbrains.kotlin.psi.KtClassOrObject
 import org.jetbrains.kotlin.psi.KtTypeReference
-import org.jetbrains.kotlin.resolve.BindingContext
-import org.jetbrains.kotlin.resolve.descriptorUtil.fqNameSafe
-import org.jetbrains.kotlin.resolve.lazy.BodyResolveMode
 
 private const val INSPECTION = "unused"
 
@@ -34,34 +31,38 @@ class ExpansionUnusedSuppressor: InspectionSuppressor {
 
     private fun checkIfClassImplementsOrExtends(element: PsiElement, className: String): Boolean {
         val ktClass = PsiTreeUtil.getParentOfType(element, KtClassOrObject::class.java) ?: return false
-        val context = ktClass.getResolutionFacade().analyze(ktClass, BodyResolveMode.FULL)
-        return ktClass.implementsInterface(className, context) || ktClass.isSubclassOf(className, context)
+        return analyze(ktClass) {
+            ktClass.implementsInterface(className) || ktClass.isSubclassOf(className)
+        }
     }
 
-    private fun KtClassOrObject.isSubclassOf(className: String, context: BindingContext): Boolean {
+    private fun KtClassOrObject.isSubclassOf(className: String): Boolean {
         if (fqName?.asString() == className) return true
 
         val superTypes = this.superTypeListEntries
         return superTypes.any { typeEntry ->
             val typeReference = typeEntry.typeReference
-            val typeFqName = typeReference?.getFqName(context)
+            val typeFqName = typeReference?.getFqName()
             typeFqName == className
         }
     }
 
-    private fun KtClassOrObject.implementsInterface(interfaceName: String, context: BindingContext): Boolean {
-        if (isSubclassOf(interfaceName, context)) return true
+    private fun KtClassOrObject.implementsInterface(interfaceName: String): Boolean {
+        if (isSubclassOf(interfaceName)) return true
 
         val superTypes = this.superTypeListEntries
         return superTypes.any { typeEntry ->
             val typeReference = typeEntry.typeReference
-            val typeFqName = typeReference?.getFqName(context)
+            val typeFqName = typeReference?.getFqName()
             typeFqName == interfaceName
         }
     }
 
-    private fun KtTypeReference.getFqName(context: BindingContext): String? {
-        val type = context[BindingContext.TYPE, this]
-        return type?.constructor?.declarationDescriptor?.fqNameSafe?.asString()
+    private fun KtTypeReference.getFqName(): String? {
+        return analyze(this) {
+            val type = type
+            val symbol = type.expandedSymbol
+            symbol?.classId?.asSingleFqName()?.asString()
+        }
     }
 }
