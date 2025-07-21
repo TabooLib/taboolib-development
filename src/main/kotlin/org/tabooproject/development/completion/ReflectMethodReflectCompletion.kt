@@ -73,6 +73,8 @@ object GetPropertyReflectCompletionProvider : CompletionProvider<CompletionParam
                     listOf(clazz)
                 }
 
+                println("search classes")
+
                 val fields = ArrayList<Pair<PsiField, PsiClass>>()
 
                 searchClasses.forEach { searchClass ->

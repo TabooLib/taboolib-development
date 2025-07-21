@@ -9,6 +9,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.ui.DialogBuilder
 import com.intellij.openapi.ui.ex.MultiLineLabel
 import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
 import com.intellij.util.xml.ui.MultiLineTextPanel
@@ -19,6 +20,7 @@ import kotlinx.coroutines.launch
 import org.tabooproject.development.component.CheckModulePanel
 import org.tabooproject.development.util.ResourceLoader
 import org.tabooproject.development.util.ResourceLoader.loadModules
+import org.tabooproject.development.settings.TabooLibProjectSettings
 import java.lang.reflect.Method
 import javax.swing.JComponent
 import javax.swing.JTextField
@@ -77,8 +79,16 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
 
     private val checkModulePanel = CheckModulePanel()
     private var mainClassTextField: JTextField? = null
-
     private var inited = false
+    private val settings = TabooLibProjectSettings.getInstance()
+
+    init {
+        // 注册 checkModulePanel 到 wizard context 的 disposable
+        Disposer.register(context.disposable, checkModulePanel)
+        
+        // 加载用户的默认设置
+        loadDefaultSettings()
+    }
 
     companion object {
 
@@ -87,6 +97,30 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
 
         fun refreshTemporaryData() {
             property = ConfigurationProperty()
+        }
+    }
+
+    /**
+     * 加载用户的默认设置
+     */
+    private fun loadDefaultSettings() {
+        // 设置默认包名前缀（如果尚未设置）
+        if (property.name == null && settings.getDefaultPackagePrefix().isNotEmpty()) {
+            val packagePrefix = settings.getDefaultPackagePrefix()
+            // 从包名前缀推导项目名
+            val projectName = context.projectName ?: "UntitledPlugin"
+            property.mainClass = "$packagePrefix.${projectName.lowercase()}.${projectName.capitalize()}Plugin"
+        }
+        
+        // 设置默认模板镜像
+        if (settings.getDefaultTemplateMirror().isNotEmpty()) {
+            property.mirrorIndex = settings.getDefaultTemplateMirror()
+        }
+        
+        // 预选常用模块（在模块数据加载后处理）
+        checkModulePanel.onModuleSelectionChanged = { modules: List<Module> ->
+            // 保存当前选择到设置中，作为下次的默认值
+            settings.setFavoriteModules(modules.map { it.id })
         }
     }
 
@@ -173,9 +207,36 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
 
         GlobalScope.launch {
             coroutineScope {
-                checkModulePanel.setModules(ResourceLoader.getModules())
+                val modules = ResourceLoader.getModules()
+                checkModulePanel.setModules(modules)
+                
+                // 应用用户的常用模块设置
+                ApplicationManager.getApplication().invokeLater {
+                    applyFavoriteModules(modules)
+                }
+                
                 inited = true
             }
+        }
+    }
+
+
+
+    /**
+     * 应用用户保存的常用模块设置
+     */
+    private fun applyFavoriteModules(modules: Map<String, List<Module>>) {
+        val favoriteModuleIds = settings.getFavoriteModules()
+        if (favoriteModuleIds.isNotEmpty()) {
+            // 从所有模块中找到匹配的模块并自动选中
+            val allModules = modules.values.flatten()
+            val favoriteModules = allModules.filter { it.id in favoriteModuleIds }
+            
+            // 将常用模块添加到当前配置中
+            property.modules.clear()
+            property.modules.addAll(favoriteModules)
+            
+            // 通知UI更新（如果需要的话，这里可以触发复选框的更新）
         }
     }
 
@@ -186,11 +247,28 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
     }
 
     override fun updateDataModel() {
-        // 针对控件数据 (AddDeleteListPanel) 无法直接绑定到数据模型的问题，手动导出数据
-//        property.modules.apply {
-//            clear()
-//            addAll(checkModulePanel.export().map { it.id })
-//        }
+        // 自动保存当前配置为默认设置，供下次使用
+        autoSaveAsDefaults()
+    }
+
+    /**
+     * 自动保存当前配置为默认设置
+     */
+    private fun autoSaveAsDefaults() {
+        // 提取包名前缀
+        val packagePrefix = if (property.mainClass.contains(".")) {
+            property.mainClass.substringBeforeLast(".")
+                .substringBeforeLast(".") // 获取包名前缀，去掉最后两级
+        } else {
+            "org.example" // 默认值
+        }
+        
+        settings.saveAsDefaults(
+            packagePrefix = packagePrefix,
+            author = OptionalPropertiesStep.property.authors.firstOrNull() ?: "",
+            selectedModules = checkModulePanel.getSelectedModules(),
+            templateMirror = property.mirrorIndex
+        )
     }
 
     /**

@@ -1,34 +1,85 @@
 package org.tabooproject.development.component
 
-import com.intellij.ui.CollectionListModel
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
-import javax.swing.JScrollPane
+import com.intellij.ui.components.JBScrollPane
+import org.tabooproject.development.step.Module
+import javax.swing.DefaultListModel
+import javax.swing.JPanel
 
 /**
- * @author 大阔
- * @since 2024/3/22 05:28
+ * 显示已选模块的列表组件
+ * 
+ * @since 1.31
  */
-class DisplayModuleList : JScrollPane() {
+class DisplayModuleList : JPanel(), Disposable {
 
-    private val listModule = CollectionListModel<String>()
+    private val listModel = DefaultListModel<String>()
+    private val jbList = JBList(listModel)
+    private val scrollPane = JBScrollPane(jbList)
+
+    private var selectedModules: List<Module> = emptyList()
 
     init {
-        isFocusable = false
-        val jbList = JBList<String>()
-        jbList.model = listModule
-
-        setViewportView(jbList)
+        add(scrollPane)
     }
 
-    fun addModule(module: String) {
-        listModule.add(module)
-        updateUI()
+    /**
+     * 设置要显示的模块列表
+     * 
+     * @param modules 模块列表
+     */
+    fun setModules(modules: List<Module>) {
+        selectedModules = modules
+        listModel.clear()
+        modules.forEach { module ->
+            listModel.addElement(module.name)
+        }
     }
 
-    fun removeModule(module: String) {
-        listModule.remove(module)
-        updateUI()
+    /**
+     * 添加单个模块
+     * 
+     * @param moduleName 模块名称
+     */
+    fun addModule(moduleName: String) {
+        if (!listModel.contains(moduleName)) {
+            listModel.addElement(moduleName)
+        }
     }
 
+    /**
+     * 移除单个模块
+     * 
+     * @param moduleName 模块名称
+     */
+    fun removeModule(moduleName: String) {
+        listModel.removeElement(moduleName)
+    }
 
+    /**
+     * 获取当前选中的模块
+     * 
+     * @return 选中的模块列表
+     */
+    fun getSelectedModules(): List<Module> {
+        return selectedModules
+    }
+
+    /**
+     * 清空模块列表
+     */
+    fun clearModules() {
+        selectedModules = emptyList()
+        listModel.clear()
+    }
+
+    /**
+     * 释放资源
+     */
+    override fun dispose() {
+        listModel.clear()
+        selectedModules = emptyList()
+    }
 }

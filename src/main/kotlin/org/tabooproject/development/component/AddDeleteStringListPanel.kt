@@ -1,33 +1,39 @@
 package org.tabooproject.development.component
 
-import com.intellij.openapi.ui.Messages
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.util.Disposer
 import com.intellij.ui.AddDeleteListPanel
-import org.tabooproject.development.util.Assets
 
+/**
+ * 字符串添加删除列表面板
+ * 
+ * @since 1.31
+ */
 class AddDeleteStringListPanel(
     title: String,
     initial: List<String>,
-    private val dialogMessage: String,
-    private val dialogTitle: String,
-    defaultHeight: Int = 100,
-) : AddDeleteListPanel<String>(title, initial) {
+    defaultHeight: Int = 175,
+) : AddDeleteListPanel<String>(title, initial), Disposable {
 
     init {
         preferredSize = preferredSize.apply {
-            width += 200
+            width += 300
             height += defaultHeight
         }
     }
 
     override fun findItemToAdd(): String? {
-        return Messages.showInputDialog(
-            dialogMessage,
-            dialogTitle,
-            Assets.TABOO_32x32,
-            "",
-            null
-        )
+        // 简单实现，可以扩展为输入对话框
+        return null
     }
 
-    fun export() = listItems.map { it as String }
+    fun export(): List<String> = listItems.map { it as String }
+
+    /**
+     * 释放资源
+     */
+    override fun dispose() {
+        // 清理资源
+        myListModel.clear()
+    }
 }

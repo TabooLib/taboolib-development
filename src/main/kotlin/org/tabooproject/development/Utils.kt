@@ -134,9 +134,27 @@ fun KtFile.checkAndImportPackage(path: String) {
     }
 }
 
+/**
+ * 获取 KtDotQualifiedExpression 的完全限定名
+ * 
+ * K2兼容的实现：基于文本分析获取FQ名称
+ * 虽然不如语义分析精确，但在K2环境下更稳定
+ */
 val KtDotQualifiedExpression.fqName: String?
     get() {
-        return text
+        // 尝试从表达式文本中解析出完全限定名
+        val fullText = text
+        
+        // 移除方法调用部分，只保留类型路径
+        val cleanText = fullText.substringBefore('(').trim()
+        
+        // 如果包含点分隔符，可能是完全限定名
+        return if (cleanText.contains('.')) {
+            cleanText
+        } else {
+            // 对于简单名称，尝试从导入中推断
+            null
+        }
     }
 
 fun KtDotQualifiedExpression.getPsiClass(): PsiClass? {

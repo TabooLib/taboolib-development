@@ -1,7 +1,7 @@
 plugins {
     id("java")
-    kotlin("jvm") version "2.0.20"
-    id("org.jetbrains.intellij") version "1.17.4"
+    kotlin("jvm") version "2.1.0"
+    id("org.jetbrains.intellij.platform") version "2.1.0"
     id("com.github.johnrengelman.shadow") version "8.1.1"
 }
 
@@ -12,51 +12,94 @@ version = properties("version")
 
 repositories {
     mavenCentral()
+    intellijPlatform {
+        defaultRepositories()
+    }
 }
 
 dependencies {
     implementation(libs.okhttp)
     implementation(libs.freemarker)
-}
-
-intellij {
-    version.set("2024.2.1")
-
-    plugins.addAll(
-        "java",
-        "gradle",
-        "Kotlin"
-    )
-
-    pluginName.set("Taboo Development")
-    updateSinceUntilBuild.set(false)
+    
+    intellijPlatform {
+        intellijIdeaCommunity("2024.3.1")
+        bundledPlugins("com.intellij.java", "org.jetbrains.kotlin")
+        pluginVerifier()
+        zipSigner()
+        instrumentationTools()
+    }
 }
 
 kotlin {
-    sourceSets.all {
-        languageSettings {
-            languageVersion = "2.0"
+    jvmToolchain(21)
+    
+    compilerOptions {
+        languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_1)
+        apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_1_9)
+        freeCompilerArgs.addAll(
+            "-Xjsr305=strict",
+            "-opt-in=kotlin.RequiresOptIn",
+        )
+    }
+}
+
+intellijPlatform {
+    pluginConfiguration {
+        version = project.version.toString()
+        name = "Taboo Development"
+        
+        ideaVersion {
+            sinceBuild = properties("pluginSinceBuild")
+            untilBuild = provider { null }
+        }
+    }
+    
+    signing {
+        certificateChain = providers.environmentVariable("CERTIFICATE_CHAIN")
+        privateKey = providers.environmentVariable("PRIVATE_KEY")
+        password = providers.environmentVariable("PRIVATE_KEY_PASSWORD")
+    }
+    
+    publishing {
+        token = providers.environmentVariable("PUBLISH_TOKEN")
+    }
+    
+    pluginVerification {
+        ides {
+            recommended()
         }
     }
 }
 
-
 tasks {
-
     build {
         dependsOn(shadowJar)
     }
 
-    patchPluginXml {
-        sinceBuild.set(properties("pluginSinceBuild"))
+    withType<JavaCompile> {
+        sourceCompatibility = "21"
+        targetCompatibility = "21"
+    }
+    
+    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_21)
+            freeCompilerArgs.addAll(
+                "-Xjsr305=strict",
+                "-opt-in=kotlin.RequiresOptIn",
+            )
+        }
     }
 
-    withType<JavaCompile> {
-        sourceCompatibility = "17"
-        targetCompatibility = "17"
-    }
-    withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-        kotlinOptions.jvmTarget = "17"
+    runIde {
+        maxHeapSize = "4G"
+        
+        systemProperty("idea.kotlin.plugin.use.k2", "true")
+
+        System.getProperty("debug")?.let {
+            systemProperty("idea.ProcessCanceledException", "disabled")
+            systemProperty("idea.debug.mode", "true")
+        }
     }
 }
 
@@ -70,14 +113,5 @@ val writeVersionToFile by tasks.registering {
     doLast {
         val versionFile = file("build/version.txt")
         versionFile.writeText(versionProp.get())
-    }
-}
-
-tasks.runIde {
-    maxHeapSize = "4G"
-
-    System.getProperty("debug")?.let {
-        systemProperty("idea.ProcessCanceledException", "disabled")
-        systemProperty("idea.debug.mode", "true")
     }
 }

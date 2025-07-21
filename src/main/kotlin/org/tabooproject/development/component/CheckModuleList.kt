@@ -1,5 +1,6 @@
 package org.tabooproject.development.component
 
+import com.intellij.openapi.Disposable
 import com.intellij.packageDependencies.ui.TreeModel
 import com.intellij.ui.*
 import com.intellij.ui.CheckboxTree.CheckboxTreeCellRenderer
@@ -10,16 +11,18 @@ import javax.swing.JTree
 import javax.swing.tree.DefaultMutableTreeNode
 
 /**
- * @author 大阔
- * @since 2024/3/22 04:31
+ * 模块选择复选框树列表
+ * 
+ * @since 1.31
  */
-class CheckModuleList(private val displayModuleList: DisplayModuleList) : JScrollPane() {
+class CheckModuleList : JScrollPane(), Disposable {
 
     val root = CheckedTreeNode("Root").apply {
         isFocusable = false
     }
 
     private val treeNode = TreeModel(root)
+    var onModuleSelectionChanged: ((List<Module>) -> Unit)? = null
 
     private val checkBoxList = CheckboxTreeBase(object : CheckboxTreeCellRenderer() {
         override fun customizeRenderer(
@@ -56,7 +59,7 @@ class CheckModuleList(private val displayModuleList: DisplayModuleList) : JScrol
                     )
                 }
             } else if (value is DefaultMutableTreeNode) {
-                textRenderer.append((value as DefaultMutableTreeNode).userObject.toString())
+                textRenderer.append(value.userObject.toString())
             }
         }
     }, root)
@@ -69,11 +72,11 @@ class CheckModuleList(private val displayModuleList: DisplayModuleList) : JScrol
                 if (node.userObject !is Module) return
                 if (node.isChecked) {
                     ConfigurationPropertiesStep.property.modules.add(node.userObject as Module)
-                    displayModuleList.addModule((node.userObject as Module).name)
                 } else {
                     ConfigurationPropertiesStep.property.modules.remove(node.userObject as Module)
-                    displayModuleList.removeModule((node.userObject as Module).name)
                 }
+                // 通知模块选择变更
+                onModuleSelectionChanged?.invoke(export())
             }
         })
         setFocusable(false)
@@ -81,8 +84,40 @@ class CheckModuleList(private val displayModuleList: DisplayModuleList) : JScrol
         setViewportView(checkBoxList)
     }
 
+    /**
+     * 设置模块数据
+     */
+    fun setModules(modules: Map<String, List<Module>>) {
+        root.removeAllChildren()
+        modules.forEach { (category, moduleList) ->
+            val categoryNode = CheckedTreeNode(category)
+            moduleList.forEach { module ->
+                val moduleNode = CheckedTreeNode(module)
+                categoryNode.add(moduleNode)
+            }
+            root.add(categoryNode)
+        }
+        treeNode.reload()
+    }
+
+    /**
+     * 导出当前选中的模块
+     */
+    fun export(): List<Module> {
+        return ConfigurationPropertiesStep.property.modules.toList()
+    }
+
+    /**
+     * 更新UI显示
+     * 
+     * 添加null检查以防止初始化期间的NPE
+     */
     override fun updateUI() {
-        treeNode?.reload()
         super.updateUI()
+    }
+
+    override fun dispose() {
+        root.removeAllChildren()
+        onModuleSelectionChanged = null
     }
 }
