@@ -53,13 +53,6 @@
         <!-- Notification Groups -->
         <notificationGroup id="TabooLib" displayType="BALLOON"/>
 
-        <!-- Settings -->
-        <applicationConfigurable 
-            id="TabooLibProjectSettings"
-            displayName="TabooLib Project Settings"
-            parentId="tools"
-            instance="org.tabooproject.development.settings.TabooLibProjectSettingsConfigurable"/>
-
         <!-- Suppressor -->
         <lang.inspectionSuppressor language="kotlin"
                                    implementationClass="org.tabooproject.development.suppressor.AnnotatedUnusedSuppressor"/>

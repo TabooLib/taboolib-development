@@ -35,14 +35,19 @@ class OptionalPropertiesStep : ModuleWizardStep(), Disposable {
      * 加载默认设置
      */
     private fun loadDefaultSettings() {
-        val defaultAuthor = settings.getDefaultAuthor()
-        if (defaultAuthor.isNotEmpty() && property.authors.isEmpty()) {
-            property.authors.add(defaultAuthor)
-        }
+        // 默认设置的应用移到getComponent()中进行，确保UI组件已创建
+    }
+
+    /**
+     * 更新作者面板显示
+     */
+    private fun updateAuthorsPanel() {
+        // 刷新作者面板数据以反映property.authors的变化
+        authorsPanel.refreshData()
     }
 
     override fun getComponent(): JComponent {
-        return panel {
+        val component = panel {
             indent {
                 group("Optional Properties", indent = true) {
                     row("Description:") {
@@ -71,6 +76,22 @@ class OptionalPropertiesStep : ModuleWizardStep(), Disposable {
                 }
             }
         }
+        
+        // 在UI组件创建后应用默认设置
+        applyDefaultSettingsToUI()
+        
+        return component
+    }
+
+    /**
+     * 将默认设置应用到UI组件
+     */
+    private fun applyDefaultSettingsToUI() {
+        val defaultAuthor = settings.getDefaultAuthor()
+        if (defaultAuthor.isNotEmpty() && property.authors.isEmpty()) {
+            property.authors.add(defaultAuthor)
+            authorsPanel.refreshData()
+        }
     }
 
     override fun updateDataModel() {
@@ -84,8 +105,7 @@ class OptionalPropertiesStep : ModuleWizardStep(), Disposable {
         property.softDepends.clear()
         property.softDepends.addAll(softDependsPanel.export())
         
-        // 自动更新默认作者设置
-        autoUpdateDefaultAuthor()
+        // 不在这里自动更新默认作者设置，由ProjectBuilder.cleanup()统一处理
     }
 
     /**

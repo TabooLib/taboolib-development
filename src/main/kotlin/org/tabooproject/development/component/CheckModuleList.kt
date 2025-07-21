@@ -21,7 +21,7 @@ class CheckModuleList : JScrollPane(), Disposable {
         isFocusable = false
     }
 
-    private val treeNode = TreeModel(root)
+    private val treeNode: TreeModel? = TreeModel(root)
     var onModuleSelectionChanged: ((List<Module>) -> Unit)? = null
 
     private val checkBoxList = CheckboxTreeBase(object : CheckboxTreeCellRenderer() {
@@ -82,6 +82,8 @@ class CheckModuleList : JScrollPane(), Disposable {
         setFocusable(false)
         autoscrolls = true
         setViewportView(checkBoxList)
+
+        updateUI()
     }
 
     /**
@@ -89,15 +91,80 @@ class CheckModuleList : JScrollPane(), Disposable {
      */
     fun setModules(modules: Map<String, List<Module>>) {
         root.removeAllChildren()
-        modules.forEach { (category, moduleList) ->
-            val categoryNode = CheckedTreeNode(category)
-            moduleList.forEach { module ->
-                val moduleNode = CheckedTreeNode(module)
-                categoryNode.add(moduleNode)
+        modules.map {
+            DefaultMutableTreeNode(it.key).apply {
+                it.value.forEach {
+                    add(CheckedTreeNode(it).apply {
+                        isChecked = false
+                        isFocusable = false
+                    })
+                }
+                isFocusable = false
             }
-            root.add(categoryNode)
+        }.forEach {
+            root.add(it)
         }
-        treeNode.reload()
+
+        updateUI()
+    }
+
+    /**
+     * 设置指定模块的选中状态
+     */
+    fun setModuleSelected(moduleId: String, selected: Boolean) {
+        // 遍历树节点，找到对应的模块并设置选中状态
+        findAndSetModuleSelection(root, moduleId, selected)
+        treeNode?.reload()
+    }
+
+    /**
+     * 批量设置模块选中状态
+     */
+    fun setSelectedModules(moduleIds: List<String>) {
+        // 先清除所有选择
+        clearAllSelections(root)
+        
+        // 然后设置指定的模块为选中
+        moduleIds.forEach { moduleId ->
+            findAndSetModuleSelection(root, moduleId, true)
+        }
+        treeNode?.reload()
+        
+        // 通知选择变更
+        onModuleSelectionChanged?.invoke(export())
+    }
+
+    /**
+     * 递归查找并设置模块选中状态
+     */
+    private fun findAndSetModuleSelection(node: CheckedTreeNode, moduleId: String, selected: Boolean) {
+        // 检查当前节点
+        if (node.userObject is Module && (node.userObject as Module).id == moduleId) {
+            node.isChecked = selected
+            return
+        }
+        
+        // 递归检查子节点
+        for (i in 0 until node.childCount) {
+            val child = node.getChildAt(i) as? DefaultMutableTreeNode ?: continue
+            for (j in 0 until child.childCount) {
+                val treeNode = child.getChildAt(j) as? CheckedTreeNode ?: continue
+                if ((treeNode.userObject as? Module)?.id == moduleId) {
+                    treeNode.isChecked = selected
+                }
+            }
+        }
+    }
+
+    /**
+     * 清除所有选择
+     */
+    private fun clearAllSelections(node: CheckedTreeNode) {
+        node.isChecked = false
+        for (i in 0 until node.childCount) {
+            val child = node.getChildAt(i) as? CheckedTreeNode ?: continue
+            clearAllSelections(child)
+        }
     }
 
     /**
@@ -114,6 +181,7 @@ class CheckModuleList : JScrollPane(), Disposable {
      */
     override fun updateUI() {
         super.updateUI()
+        treeNode?.reload()
     }
 
     override fun dispose() {

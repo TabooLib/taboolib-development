@@ -79,19 +79,19 @@ object ResourceLoader {
 
     fun parseModules(json: JsonObject): Map<String, List<Module>> {
 
-        val modules = json.get("modules")!!.jsonObject
-        return modules.keys.map { key ->
-            key to modules.get(key)!!.jsonArray.map {
+        val modules = json["modules"]!!.jsonObject
+        return modules.keys.associateWith { key ->
+            modules[key]!!.jsonArray.map {
                 it.jsonObject.let {
                     Module(
                         // 不知道为什么有时候会带引号
-                        it.get("name")!!.jsonPrimitive.toString().replace("\"", ""),
-                        it.get("desc")!!.jsonPrimitive.toString().replace("\"", ""),
-                        it.get("id")!!.jsonPrimitive.toString().replace("\"", "")
+                        it["name"]!!.jsonPrimitive.toString().replace("\"", ""),
+                        it["desc"]!!.jsonPrimitive.toString().replace("\"", ""),
+                        it["id"]!!.jsonPrimitive.toString().replace("\"", "")
                     )
                 }
             }
-        }.toMap()
+        }
 
     }
 

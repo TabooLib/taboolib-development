@@ -59,8 +59,35 @@ class ProjectBuilder : AbstractNewProjectWizardBuilder() {
     }
 
     override fun cleanup() {
+        // 在清理前保存当前配置为默认设置
+        saveCurrentConfigurationAsDefaults()
+        
         super.cleanup()
         ConfigurationPropertiesStep.refreshTemporaryData()
         OptionalPropertiesStep.refreshTemporaryData()
+    }
+
+    /**
+     * 保存当前配置为默认设置
+     */
+    private fun saveCurrentConfigurationAsDefaults() {
+        val settings = org.tabooproject.development.settings.TabooLibProjectSettings.getInstance()
+        val configProperty = ConfigurationPropertiesStep.property
+        val optionalProperty = OptionalPropertiesStep.property
+        
+        // 提取包名前缀
+        val packagePrefix = if (configProperty.mainClass.contains(".")) {
+            configProperty.mainClass.substringBeforeLast(".")
+                .substringBeforeLast(".") // 获取包名前缀，去掉最后两级
+        } else {
+            "org.example" // 默认值
+        }
+        
+        settings.saveAsDefaults(
+            packagePrefix = packagePrefix,
+            author = optionalProperty.authors.firstOrNull() ?: "",
+            selectedModules = configProperty.modules,
+            templateMirror = configProperty.mirrorIndex
+        )
     }
 }

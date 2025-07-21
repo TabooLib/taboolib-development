@@ -1,6 +1,7 @@
 package org.tabooproject.development.component
 
 import com.intellij.openapi.Disposable
+import com.intellij.openapi.observable.util.whenSizeChanged
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBPanel
@@ -19,12 +20,11 @@ import javax.swing.JPanel
  * @since 1.31
  */
 class CheckModulePanel(
-    displayModuleList: DisplayModuleList = DisplayModuleList()
+    private val displayModuleList: DisplayModuleList = DisplayModuleList()
 ) : JBPanel<CheckModulePanel>(), Disposable {
 
     private val checkModuleList = CheckModuleList()
-    private val displayModuleList = displayModuleList
-    
+
     private val checkModuleScrollPane = JBScrollPane(checkModuleList)
     private val displayModuleScrollPane = JBScrollPane(displayModuleList)
 
@@ -68,6 +68,15 @@ class CheckModulePanel(
      */
     fun setModules(modules: Map<String, List<Module>>) {
         checkModuleList.setModules(modules)
+
+        checkModuleScrollPane.size = checkModuleScrollPane.preferredSize
+    }
+
+    /**
+     * 设置选中的模块
+     */
+    fun setSelectedModules(moduleIds: List<String>) {
+        checkModuleList.setSelectedModules(moduleIds)
     }
 
     /**

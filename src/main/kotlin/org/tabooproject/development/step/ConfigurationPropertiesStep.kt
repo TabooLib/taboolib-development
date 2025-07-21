@@ -69,11 +69,15 @@ val TEMPLATE_DOWNLOAD_MIRROR = mapOf(
 
 data class ConfigurationProperty(
     var name: String? = null,
-    var mainClass: String = "org.example.untitled.UntitledPlugin",
+    var mainClass: String = "org.example.untitled.Untitled",
     var version: String = "1.0-SNAPSHOT",
     var mirrorIndex: String = "github.com",
     val modules: MutableList<Module> = mutableListOf() // 不给默认模块了
-)
+) {
+    init {
+
+    }
+}
 
 class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep() {
 
@@ -104,23 +108,11 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
      * 加载用户的默认设置
      */
     private fun loadDefaultSettings() {
-        // 设置默认包名前缀（如果尚未设置）
-        if (property.name == null && settings.getDefaultPackagePrefix().isNotEmpty()) {
-            val packagePrefix = settings.getDefaultPackagePrefix()
-            // 从包名前缀推导项目名
-            val projectName = context.projectName ?: "UntitledPlugin"
-            property.mainClass = "$packagePrefix.${projectName.lowercase()}.${projectName.capitalize()}Plugin"
-        }
-        
-        // 设置默认模板镜像
-        if (settings.getDefaultTemplateMirror().isNotEmpty()) {
-            property.mirrorIndex = settings.getDefaultTemplateMirror()
-        }
-        
-        // 预选常用模块（在模块数据加载后处理）
+        // 只设置回调，不立即应用设置（等到updateStep时再应用）
         checkModulePanel.onModuleSelectionChanged = { modules: List<Module> ->
-            // 保存当前选择到设置中，作为下次的默认值
-            settings.setFavoriteModules(modules.map { it.id })
+            // 实时保存模块选择到配置中
+            property.modules.clear()
+            property.modules.addAll(modules)
         }
     }
 
@@ -131,7 +123,6 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
                     row("Plugin name:") {
                         textField()
                             .apply {
-                                property.mainClass = "org.example.${property.name?.lowercase()}.${property.name?.capitalize()}Plugin"
                                 component.text = property.name
                                 component.columns = 30
                             }.onChanged {
@@ -208,67 +199,80 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
         GlobalScope.launch {
             coroutineScope {
                 val modules = ResourceLoader.getModules()
+
                 checkModulePanel.setModules(modules)
+                applyFavoriteModulesFromSettings()
                 
                 // 应用用户的常用模块设置
                 ApplicationManager.getApplication().invokeLater {
-                    applyFavoriteModules(modules)
+                    inited = true
                 }
-                
-                inited = true
             }
         }
     }
 
 
 
-    /**
-     * 应用用户保存的常用模块设置
-     */
-    private fun applyFavoriteModules(modules: Map<String, List<Module>>) {
-        val favoriteModuleIds = settings.getFavoriteModules()
-        if (favoriteModuleIds.isNotEmpty()) {
-            // 从所有模块中找到匹配的模块并自动选中
-            val allModules = modules.values.flatten()
-            val favoriteModules = allModules.filter { it.id in favoriteModuleIds }
-            
-            // 将常用模块添加到当前配置中
-            property.modules.clear()
-            property.modules.addAll(favoriteModules)
-            
-            // 通知UI更新（如果需要的话，这里可以触发复选框的更新）
-        }
-    }
+
 
     override fun updateStep() {
-        if (property.name == null) {
-            property.name = context.projectName
-        }
+        refreshTemporaryData()
+
+        property.name = context.projectName
+
+        // 在项目名称确定后，重新加载和应用默认设置
+        applyDefaultSettings()
     }
 
     override fun updateDataModel() {
-        // 自动保存当前配置为默认设置，供下次使用
-        autoSaveAsDefaults()
+        // 不在这里保存设置，由ProjectBuilder.cleanup()统一处理
     }
 
     /**
-     * 自动保存当前配置为默认设置
+     * 应用默认设置到当前配置
      */
-    private fun autoSaveAsDefaults() {
-        // 提取包名前缀
-        val packagePrefix = if (property.mainClass.contains(".")) {
-            property.mainClass.substringBeforeLast(".")
-                .substringBeforeLast(".") // 获取包名前缀，去掉最后两级
-        } else {
-            "org.example" // 默认值
+    private fun applyDefaultSettings() {
+        // 应用默认包名前缀
+        if (settings.getDefaultPackagePrefix().isNotEmpty()) {
+            val packagePrefix = settings.getDefaultPackagePrefix()
+            val projectName = property.name ?: "Untitled"
+            property.mainClass = "$packagePrefix.${projectName.lowercase()}.${projectName.capitalize()}"
+            
+            // 更新UI中的文本字段
+            mainClassTextField?.text = property.mainClass
         }
         
-        settings.saveAsDefaults(
-            packagePrefix = packagePrefix,
-            author = OptionalPropertiesStep.property.authors.firstOrNull() ?: "",
-            selectedModules = checkModulePanel.getSelectedModules(),
-            templateMirror = property.mirrorIndex
-        )
+        // 应用默认模板镜像
+        if (settings.getDefaultTemplateMirror().isNotEmpty()) {
+            property.mirrorIndex = settings.getDefaultTemplateMirror()
+        }
+        
+        // 应用常用模块设置（需要在模块数据加载后）
+        applyFavoriteModulesWhenReady()
+    }
+
+    /**
+     * 在模块数据准备就绪时应用常用模块设置
+     */
+    private fun applyFavoriteModulesWhenReady() {
+        if (inited) {
+            // 如果模块数据已经加载，立即应用
+            applyFavoriteModulesFromSettings()
+        }
+        // 否则等待_init()完成后再应用
+    }
+
+    /**
+     * 从设置中应用常用模块
+     */
+    private fun applyFavoriteModulesFromSettings() {
+        val favoriteModuleIds = settings.getFavoriteModules()
+        if (favoriteModuleIds.isNotEmpty()) {
+
+            println("apply fav modules ${favoriteModuleIds}")
+            // 直接设置选中的模块
+            checkModulePanel.setSelectedModules(favoriteModuleIds)
+        }
     }
 
     /**
@@ -287,10 +291,10 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
         val currentLastPart = property.mainClass.substringAfterLast(".")
 
         val newLastPart = when {
-            currentLastPart == "Plugin" -> text + "Plugin"
+            currentLastPart == "Plugin" -> text
             currentLastPart.isEmpty() -> text.capitalize()
             currentLastPart == property.name?.lowercase() -> text.capitalize()
-            currentLastPart.removeSuffix("Plugin").lowercase() == property.name?.lowercase() -> text.capitalize() + "Plugin"
+            currentLastPart.removeSuffix("Plugin").lowercase() == property.name?.lowercase() -> text.capitalize()
             else -> currentLastPart
         }
 

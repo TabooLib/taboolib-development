@@ -11,20 +11,33 @@ import com.intellij.ui.AddDeleteListPanel
  */
 class AddDeleteStringListPanel(
     title: String,
-    initial: List<String>,
+    private val initialData: MutableList<String>,
     defaultHeight: Int = 175,
-) : AddDeleteListPanel<String>(title, initial), Disposable {
+) : AddDeleteListPanel<String>(title, initialData.toList()), Disposable {
 
     init {
         preferredSize = preferredSize.apply {
             width += 300
             height += defaultHeight
         }
+        
+        // 初始化时加载已有数据
+        refreshData()
     }
 
     override fun findItemToAdd(): String? {
         // 简单实现，可以扩展为输入对话框
         return null
+    }
+
+    /**
+     * 刷新面板数据以反映initialData的变化
+     */
+    fun refreshData() {
+        myListModel.clear()
+        initialData.forEach { item ->
+            myListModel.addElement(item)
+        }
     }
 
     fun export(): List<String> = listItems.map { it as String }
