@@ -39,25 +39,62 @@ class CheckModulePanel(
         Disposer.register(this, displayModuleList as Disposable)
         
         layout = BorderLayout()
-        preferredSize = Dimension(600, 400)
+        preferredSize = Dimension(800, 480) // 增加高度，充分利用空间
         
-        val leftPanel = JPanel(BorderLayout()).apply {
-            border = JBUI.Borders.empty(10)
-            add(checkModuleScrollPane, BorderLayout.CENTER)
+        // 创建美观的边框和标题
+        val leftPanel = panel {
+            group("Available Modules", indent = false) {
+                row {
+                    scrollCell(checkModuleList)
+                        .apply {
+                            component.preferredSize = Dimension(380, 410) // 增加高度
+                        }
+                }
+            }
+        }.apply {
+            border = JBUI.Borders.empty(10, 10, 5, 5)
         }
         
-        val rightPanel = JPanel(BorderLayout()).apply {
-            border = JBUI.Borders.empty(10)
-            add(displayModuleScrollPane, BorderLayout.CENTER)
+        val rightPanel = panel {
+            group("Selected Modules", indent = false) {
+                row {
+                    scrollCell(displayModuleList)
+                        .apply {
+                            component.preferredSize = Dimension(350, 410) // 增加高度与左侧对齐
+                        }
+                }
+            }
+        }.apply {
+            border = JBUI.Borders.empty(10, 5, 5, 10)
         }
         
-        add(leftPanel, BorderLayout.WEST)
-        add(rightPanel, BorderLayout.EAST)
+        add(leftPanel, BorderLayout.CENTER)  // 左侧占据主要空间
+        add(rightPanel, BorderLayout.EAST)   // 右侧固定宽度
         
         // 设置模块选择回调，连接到外部回调
         checkModuleList.onModuleSelectionChanged = { modules ->
             displayModuleList.setModules(modules)
             onModuleSelectionChanged?.invoke(modules)
+        }
+        
+        // 设置右侧列表的点击取消选中回调
+        displayModuleList.onModuleRemoved = { module ->
+            println("DisplayModuleList: 尝试移除模块 ${module.name} (${module.id})")
+            // 在左侧树中取消选中该模块，不重新设置整个列表
+            checkModuleList.unselectModule(module.id)
+        }
+        
+        // 优化滚动条设置
+        checkModuleScrollPane.apply {
+            verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
+            horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+            border = JBUI.Borders.empty()
+        }
+        
+        displayModuleScrollPane.apply {
+            verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED  
+            horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+            border = JBUI.Borders.empty()
         }
     }
 

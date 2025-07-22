@@ -70,20 +70,52 @@
         <completion.contributor language="kotlin"
                                 implementationClass="org.tabooproject.development.completion.LogFuncCompletion"/>
         <completion.contributor language="kotlin"
-                                implementationClass="org.tabooproject.development.completion.ReflectMethodReflectCompletion"
-        />
-        <completion.confidence language="kotlin"
-                               implementationClass="org.tabooproject.development.completion.TabooLiteralConfidence"
-                               order="before kotlinSkipAutopopupInStrings"/>
+                                implementationClass="org.tabooproject.development.completion.ReflectMethodReflectCompletion"/>
+        <completion.confidence language="kotlin" implementationClass="org.tabooproject.development.completion.TabooLiteralConfidence" order="before kotlinSkipAutopopupInStrings"/>
 
-        <!-- I18n Inlay Hints for sendLang method -->
-        <codeInsight.inlayProvider language="kotlin"
-                                   implementationClass="org.tabooproject.development.inlay.SendLangInlayHintsProvider"/>
-                                   
-        <!-- Language file services -->
-        <projectService serviceImplementation="org.tabooproject.development.inlay.LangFileWatcher"/>
-        <projectService serviceImplementation="org.tabooproject.development.inlay.EditorDocumentListener"/>
+        <!-- TabooLib 语言文件支持 -->
+        <!-- 语言文件折叠功能 -->
+        <lang.foldingBuilder language="kotlin" order="first"
+                             implementationClass="org.tabooproject.development.inlay.LangFoldingBuilder"/>
+        
+        <!-- 代码折叠选项提供器 -->
+        <codeFoldingOptionsProvider implementation="org.tabooproject.development.inlay.LangFoldingOptionsProvider"/>
+        
+        <!-- 应用服务 -->
+        <applicationService serviceImplementation="org.tabooproject.development.inlay.LangFoldingSettings"/>
+        
+        <!-- 项目启动活动 -->
+        <postStartupActivity implementation="org.tabooproject.development.inlay.LangFoldingRefreshListener"/>
+        <postStartupActivity implementation="org.tabooproject.development.inlay.LangFoldingEditorListener"/>
+        <postStartupActivity implementation="org.tabooproject.development.inlay.LangFoldingDocumentListener"/>
+        <postStartupActivity implementation="org.tabooproject.development.inlay.LangFoldingMouseListener"/>
+        <postStartupActivity implementation="org.tabooproject.development.inlay.LangFoldingHighlighter"/>
+                              
+        <!-- 语言文件行标记导航 -->
+        <codeInsight.lineMarkerProvider language="kotlin" 
+                                       implementationClass="org.tabooproject.development.inlay.LangLineMarkerProvider"/>
+                                       
+        <!-- 边栏显示翻译内容 -->
+        <codeInsight.lineMarkerProvider language="kotlin" 
+                                       implementationClass="org.tabooproject.development.inlay.MinecraftLangGutterProvider"/>
+        
+        
+        
+        <!-- 语言文件编辑通知 -->
+        <editorNotificationProvider implementation="org.tabooproject.development.inlay.LangEditorNotificationProvider"/>
+        
+        <!-- 语言文件颜色注解器 -->
+        <annotator language="kotlin" implementationClass="org.tabooproject.development.inlay.LangFoldingColorAnnotator"/>
+        
+        <!-- 颜色设置页面 -->
+        <colorSettingsPage implementation="org.tabooproject.development.inlay.LangColorSettingsPage"/>
     </extensions>
+    
+    <!-- 语言文件变更监听器 -->
+    <applicationListeners>
+        <listener class="org.tabooproject.development.inlay.LangFileListener"
+                  topic="com.intellij.openapi.vfs.newvfs.BulkFileListener"/>
+    </applicationListeners>
 
     <resource-bundle/>
 </idea-plugin>

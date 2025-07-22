@@ -97,6 +97,18 @@ class TabooLibProjectSettings : PersistentStateComponent<TabooLibProjectSettings
     fun setDefaultTemplateMirror(mirror: String) {
         state.defaultTemplateMirror = mirror
     }
+    
+    /**
+     * 获取默认模块镜像
+     */
+    fun getDefaultModulesMirror(): String = state.defaultModulesMirror
+
+    /**
+     * 设置默认模块镜像
+     */
+    fun setDefaultModulesMirror(mirror: String) {
+        state.defaultModulesMirror = mirror
+    }
 
     /**
      * 保存当前项目配置为默认值
@@ -105,13 +117,15 @@ class TabooLibProjectSettings : PersistentStateComponent<TabooLibProjectSettings
         packagePrefix: String,
         author: String,
         selectedModules: List<Module>,
-        templateMirror: String
+        templateMirror: String,
+        modulesMirror: String? = null
     ) {
         state.defaultPackagePrefix = packagePrefix
         state.defaultAuthor = author
         state.favoriteModules.clear()
         state.favoriteModules.addAll(selectedModules.map { it.id })
         state.defaultTemplateMirror = templateMirror
+        modulesMirror?.let { state.defaultModulesMirror = it }
     }
 
     /**
@@ -121,7 +135,8 @@ class TabooLibProjectSettings : PersistentStateComponent<TabooLibProjectSettings
         var defaultPackagePrefix: String = "org.example",
         var defaultAuthor: String = System.getProperty("user.name", ""),
         var favoriteModules: MutableList<String> = mutableListOf(),
-        var defaultTemplateMirror: String = "github.com"
+        var defaultTemplateMirror: String = "github.com",
+        var defaultModulesMirror: String = "github.com"
     )
 
     companion object {

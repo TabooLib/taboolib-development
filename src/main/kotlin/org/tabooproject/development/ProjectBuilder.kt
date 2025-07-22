@@ -9,6 +9,7 @@ import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.roots.ui.configuration.ModulesProvider
 import com.intellij.openapi.util.ThrowableComputable
+import org.tabooproject.development.step.BasicConfigurationStep
 import org.tabooproject.development.step.ConfigurationPropertiesStep
 import org.tabooproject.development.step.OptionalPropertiesStep
 import org.tabooproject.development.util.Assets
@@ -55,7 +56,11 @@ class ProjectBuilder : AbstractNewProjectWizardBuilder() {
     }
 
     override fun createWizardSteps(wizardContext: WizardContext, modulesProvider: ModulesProvider): Array<ModuleWizardStep> {
-        return arrayOf(ConfigurationPropertiesStep(wizardContext), OptionalPropertiesStep())
+        return arrayOf(
+            BasicConfigurationStep(wizardContext),
+            ConfigurationPropertiesStep(wizardContext), 
+            OptionalPropertiesStep()
+        )
     }
 
     override fun cleanup() {
@@ -63,6 +68,7 @@ class ProjectBuilder : AbstractNewProjectWizardBuilder() {
         saveCurrentConfigurationAsDefaults()
         
         super.cleanup()
+        BasicConfigurationStep.refreshTemporaryData()
         ConfigurationPropertiesStep.refreshTemporaryData()
         OptionalPropertiesStep.refreshTemporaryData()
     }
