@@ -141,7 +141,7 @@ class EditorDocumentListener(private val project: Project) : Disposable {
      */
     private fun containsSendLangCalls(psiFile: com.intellij.psi.PsiFile): Boolean {
         return try {
-            psiFile.text.contains("sendLang")
+            psiFile.text.contains("sendLang") || psiFile.text.contains("asLangText")
         } catch (e: Exception) {
             true // 发生异常时默认刷新
         }

@@ -8,6 +8,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.tabooproject.development.isSendLangCall
 import javax.swing.Icon
 
 /**
@@ -60,31 +61,6 @@ class LangLineMarkerProvider : RelatedItemLineMarkerProvider() {
             .setEmptyPopupText("无法找到对应的语言文件")
         
         result.add(builder.createLineMarkerInfo(targetElement))
-    }
-    
-    /**
-     * 判断是否是sendLang方法调用
-     */
-    private fun isSendLangCall(callExpression: KtCallExpression): Boolean {
-        val calleeText = callExpression.calleeExpression?.text ?: return false
-        
-        // 直接调用sendLang
-        if (calleeText == "sendLang") {
-            return true
-        }
-        
-        // 处理 player.sendLang 这种模式
-        if (calleeText.endsWith(".sendLang")) {
-            return true
-        }
-        
-        // 处理其它可能的sendLang调用方式
-        val dotIndex = calleeText.lastIndexOf('.')
-        if (dotIndex > 0 && calleeText.substring(dotIndex + 1) == "sendLang") {
-            return true
-        }
-        
-        return false
     }
     
     /**

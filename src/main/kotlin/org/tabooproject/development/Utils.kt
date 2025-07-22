@@ -18,6 +18,24 @@ import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.concurrent.TimeUnit
 
+fun isSendLangCall(callExpression: KtCallExpression): Boolean {
+    val calleeText = callExpression.calleeExpression?.text ?: return false
+
+    // 直接调用sendLang
+    if (calleeText == "sendLang" || calleeText == "asLangText") {
+        return true
+    }
+
+    // 处理 player.sendLang 这种模式
+    if (calleeText.endsWith(".sendLang") || calleeText.endsWith(".asLangText")) {
+        return true
+    }
+
+    // 处理其它可能的sendLang调用方式
+    val dotIndex = calleeText.lastIndexOf('.')
+    return dotIndex > 0 && (calleeText.substring(dotIndex + 1) == "sendLang" || calleeText.substring(dotIndex + 1) == "asLangText")
+}
+
 fun createFileWithDirectories(baseDir: String, relativePath: String): Path? {
     val fullPath = Paths.get(baseDir, relativePath)
     val parentDir = fullPath.parent ?: return null

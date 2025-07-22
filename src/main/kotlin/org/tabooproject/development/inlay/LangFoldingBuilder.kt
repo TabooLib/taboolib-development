@@ -11,6 +11,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiRecursiveElementVisitor
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
+import org.tabooproject.development.isSendLangCall
 
 /**
  * TabooLib 语言文件代码折叠构建器
@@ -115,28 +116,6 @@ class LangFoldingBuilder : FoldingBuilderEx(), DumbAware {
         }
 
         return "\"$finalText\""
-    }
-
-
-    /**
-     * 判断是否是sendLang方法调用
-     */
-    private fun isSendLangCall(callExpression: KtCallExpression): Boolean {
-        val calleeText = callExpression.calleeExpression?.text ?: return false
-
-        // 直接调用sendLang
-        if (calleeText == "sendLang" || calleeText == "asLangText") {
-            return true
-        }
-
-        // 处理 player.sendLang 这种模式
-        if (calleeText.endsWith(".sendLang") || calleeText.endsWith(".asLangText")) {
-            return true
-        }
-
-        // 处理其它可能的sendLang调用方式
-        val dotIndex = calleeText.lastIndexOf('.')
-        return dotIndex > 0 && (calleeText.substring(dotIndex + 1) == "sendLang" || calleeText.substring(dotIndex + 1) == "asLangText")
     }
 
     /**
