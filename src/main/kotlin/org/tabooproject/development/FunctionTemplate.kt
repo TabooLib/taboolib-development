@@ -1,5 +1,8 @@
 package org.tabooproject.development
 
+import com.google.gson.JsonParser
+import org.jetbrains.kotlin.idea.base.util.getString
+import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.tabooproject.development.step.ConfigurationPropertiesStep
 import org.tabooproject.development.step.OptionalPropertiesStep
 import java.io.IOException
@@ -47,7 +50,7 @@ object FunctionTemplate {
         }
     }
 
-    private const val TABOO_GRADLE_PROPERTIES_FILE_URL = "https://raw.githubusercontent.com/TabooLib/taboolib/HEAD/gradle.properties"
+    private const val TABOO_GRADLE_PROPERTIES_FILE_URL = "https://api.github.com/repos/taboolib/taboolib/releases/latest"
 
     private val tabooLatestVersion: String
         get() {
@@ -61,19 +64,8 @@ object FunctionTemplate {
                 .execute()
                 .takeIf { it.isSuccessful } ?: throw IOException("Failed to download file")
 
-            val reader = response.body?.byteStream()?.bufferedReader(StandardCharsets.UTF_8) ?: throw IOException("Response body is null")
-
-            var version = "UNKNOWN"
-            reader.use { buffer ->
-                while (true) {
-                    val line = buffer.readLine() ?: throw IllegalStateException("Can not read TabooLib version")
-                    val split = line.split("=")
-                    if (split[0] == "version") {
-                        version = split[1]
-                        break
-                    }
-                }
-            }
-            return version
+            return response.body?.byteStream()?.bufferedReader(StandardCharsets.UTF_8)?.readText()?.let {
+                JsonParser.parseString(it).asJsonObject.getString("tag_name")
+            } ?: throw IOException("Response body is null")
         }
 }

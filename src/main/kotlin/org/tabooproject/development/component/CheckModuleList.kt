@@ -109,15 +109,6 @@ class CheckModuleList : JScrollPane(), Disposable {
     }
 
     /**
-     * 设置指定模块的选中状态
-     */
-    fun setModuleSelected(moduleId: String, selected: Boolean) {
-        // 遍历树节点，找到对应的模块并设置选中状态
-        findAndSetModuleSelection(root, moduleId, selected)
-        treeNode?.reload()
-    }
-
-    /**
      * 批量设置模块选中状态
      */
     fun setSelectedModules(moduleIds: List<String>) {
@@ -151,6 +142,11 @@ class CheckModuleList : JScrollPane(), Disposable {
                 val treeNode = child.getChildAt(j) as? CheckedTreeNode ?: continue
                 if ((treeNode.userObject as? Module)?.id == moduleId) {
                     treeNode.isChecked = selected
+                    if (selected) {
+                        ConfigurationPropertiesStep.property.modules.add(treeNode.userObject as Module)
+                    } else {
+                        ConfigurationPropertiesStep.property.modules.remove(treeNode.userObject as Module)
+                    }
                 }
             }
         }

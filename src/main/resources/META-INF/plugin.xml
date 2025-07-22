@@ -24,7 +24,7 @@
     ]]></description>
 
     <change-notes><![CDATA[
-        <strong>v1.31</strong>
+        <strong>v1.41</strong>
         <ul>
             <li>Full compatibility with Kotlin K2 compiler</li>
             <li>Updated for IntelliJ IDEA 2024.3+ compatibility</li>
@@ -75,6 +75,14 @@
         <completion.confidence language="kotlin"
                                implementationClass="org.tabooproject.development.completion.TabooLiteralConfidence"
                                order="before kotlinSkipAutopopupInStrings"/>
+
+        <!-- I18n Inlay Hints for sendLang method -->
+        <codeInsight.inlayProvider language="kotlin"
+                                   implementationClass="org.tabooproject.development.inlay.SendLangInlayHintsProvider"/>
+                                   
+        <!-- Language file services -->
+        <projectService serviceImplementation="org.tabooproject.development.inlay.LangFileWatcher"/>
+        <projectService serviceImplementation="org.tabooproject.development.inlay.EditorDocumentListener"/>
     </extensions>
 
     <resource-bundle/>
