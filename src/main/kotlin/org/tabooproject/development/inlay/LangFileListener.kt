@@ -6,6 +6,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.openapi.vfs.newvfs.BulkFileListener
 import com.intellij.openapi.vfs.newvfs.events.VFileEvent
 import com.intellij.ui.EditorNotifications
+import java.util.concurrent.atomic.AtomicLong
 
 /**
  * TabooLib语言文件监听器
@@ -15,6 +16,9 @@ import com.intellij.ui.EditorNotifications
  * @since 1.42
  */
 object LangFileListener : BulkFileListener {
+    
+    private val lastRefreshTime = AtomicLong(0)
+    private const val REFRESH_DEBOUNCE_MS = 300L // 防抖间隔
 
     override fun before(events: List<VFileEvent>) {
         // 文件修改前无需处理
@@ -22,38 +26,54 @@ object LangFileListener : BulkFileListener {
 
     override fun after(events: List<VFileEvent>) {
         // 检查是否有语言文件发生变更
-        if (events.any { LangFiles.isLangFile(it.file) }) {
-            // 清除受影响文件的缓存
-            events.forEach { event ->
-                event.file?.let { file ->
-                    LangParser.clearCache(file)
-                }
-            }
-            
-            // 更新所有编辑器通知
-            EditorNotifications.updateAll()
-            
-            // 更新所有项目的代码折叠和行标记
-            updateAllProjects()
+        val affectedFiles = events.mapNotNull { it.file }.filter { LangFiles.isLangFile(it) }
+        if (affectedFiles.isEmpty()) return
+        
+        // 防抖：避免频繁刷新
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastRefreshTime.get() < REFRESH_DEBOUNCE_MS) {
+            return
+        }
+        lastRefreshTime.set(currentTime)
+        
+        // 清除受影响文件的缓存
+        affectedFiles.forEach { file ->
+            LangParser.clearCache(file)
+        }
+        
+        // 更新编辑器通知（轻量级操作）
+        EditorNotifications.updateAll()
+        
+        // 延迟刷新项目，避免阻塞文件操作
+        ApplicationManager.getApplication().invokeLater {
+            updateAffectedProjects(affectedFiles)
         }
     }
 
     /**
-     * 更新所有项目
+     * 更新受影响的项目（优化版本）
      */
-    private fun updateAllProjects() {
-        ApplicationManager.getApplication().invokeLater {
-            val openProjects = com.intellij.openapi.project.ProjectManager.getInstance().openProjects
-            for (project in openProjects) {
-                if (!project.isDisposed) {
-                    refreshProject(project)
-                }
+    private fun updateAffectedProjects(affectedFiles: List<VirtualFile>) {
+        val projectManager = com.intellij.openapi.project.ProjectManager.getInstance()
+        val openProjects = projectManager.openProjects
+        
+        // 只刷新实际包含受影响文件的项目
+        for (project in openProjects) {
+            if (project.isDisposed) continue
+            
+            val projectBasePath = project.basePath ?: continue
+            val hasAffectedFiles = affectedFiles.any { file ->
+                file.path.startsWith(projectBasePath)
+            }
+            
+            if (hasAffectedFiles) {
+                refreshProject(project)
             }
         }
     }
     
     /**
-     * 刷新项目
+     * 刷新项目（优化版本）
      */
     private fun refreshProject(project: Project) {
         if (project.isDisposed) return
@@ -63,27 +83,19 @@ object LangFileListener : BulkFileListener {
             val fileEditorManager = com.intellij.openapi.fileEditor.FileEditorManager.getInstance(project)
             val daemonCodeAnalyzer = com.intellij.codeInsight.daemon.DaemonCodeAnalyzer.getInstance(project)
             
-            // 刷新当前打开的所有编辑器
+            // 只刷新当前打开的 Kotlin 文件
             fileEditorManager.allEditors.forEach { editor ->
                 if (editor is com.intellij.openapi.fileEditor.TextEditor) {
                     val virtualFile = editor.file
-                    if (virtualFile != null && virtualFile.isValid) {
+                    if (virtualFile != null && virtualFile.isValid && virtualFile.name.endsWith(".kt")) {
                         val psiFile = psiManager.findFile(virtualFile)
                         if (psiFile != null) {
-                            // 强制重新分析整个文件
+                            // 只重新分析包含 sendLang 调用的文件
                             daemonCodeAnalyzer.restart(psiFile)
                         }
                     }
                 }
             }
-            
-            // 强制更新折叠区域和行标记
-            val updateManager = com.intellij.codeInsight.daemon.impl.DaemonCodeAnalyzerImpl.getInstance(project)
-            updateManager.setUpdateByTimerEnabled(false) // 暂时关闭自动更新
-            updateManager.setUpdateByTimerEnabled(true)  // 重新开启自动更新
-            
-            // 刷新所有编辑器
-            com.intellij.codeInsight.daemon.DaemonCodeAnalyzer.getInstance(project).restart()
         }
     }
 } 

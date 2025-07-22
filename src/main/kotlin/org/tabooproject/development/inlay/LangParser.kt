@@ -14,8 +14,18 @@ object LangParser {
     
     /**
      * 缓存已解析的语言文件
+     * 使用 LinkedHashMap 实现 LRU 缓存
      */
-    private val langCache = mutableMapOf<String, Map<String, String>>()
+    private val langCache = object : LinkedHashMap<String, Map<String, String>>(16, 0.75f, true) {
+        override fun removeEldestEntry(eldest: MutableMap.MutableEntry<String, Map<String, String>>?): Boolean {
+            return size > MAX_CACHE_SIZE
+        }
+    }
+    
+    /**
+     * 最大缓存条目数，防止内存泄露
+     */
+    private const val MAX_CACHE_SIZE = 100
     
     /**
      * 解析语言文件
@@ -24,12 +34,17 @@ object LangParser {
      * @param forceReload 是否强制重新加载
      * @return 语言条目列表
      */
+    @Synchronized
     fun parseLangFile(file: VirtualFile, forceReload: Boolean = false): List<Lang> {
         val cacheKey = getCacheKey(file)
         
         // 如果需要强制重新加载或者缓存中没有，则解析文件
         val langMap = if (forceReload || !langCache.containsKey(cacheKey)) {
-            parseFile(file).also { langCache[cacheKey] = it }
+            parseFile(file).also { 
+                if (it.isNotEmpty()) { // 只缓存有效数据
+                    langCache[cacheKey] = it 
+                }
+            }
         } else {
             langCache[cacheKey] ?: emptyMap()
         }
@@ -177,12 +192,26 @@ object LangParser {
      * 
      * @param file 要清除缓存的文件，如果为null则清除所有缓存
      */
+    @Synchronized
     fun clearCache(file: VirtualFile? = null) {
         if (file == null) {
             langCache.clear()
         } else {
-            val cacheKey = getCacheKey(file)
-            langCache.remove(cacheKey)
+            // 移除该文件的所有版本缓存
+            val filePath = file.path
+            val keysToRemove = langCache.keys.filter { key ->
+                key.startsWith("$filePath:")
+            }
+            keysToRemove.forEach { key ->
+                langCache.remove(key)
+            }
         }
+    }
+    
+    /**
+     * 获取缓存统计信息
+     */
+    fun getCacheStats(): String {
+        return "LangParser Cache: ${langCache.size}/$MAX_CACHE_SIZE entries"
     }
 } 

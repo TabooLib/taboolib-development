@@ -11,6 +11,7 @@ import com.intellij.openapi.fileEditor.FileEditorManager
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
+import com.intellij.openapi.application.ApplicationManager
 
 /**
  * 编辑器文档监听器
@@ -23,6 +24,13 @@ import com.intellij.psi.PsiManager
 class EditorDocumentListener(private val project: Project) : Disposable {
 
     /**
+     * 防抖时间戳
+     */
+    @Volatile
+    private var lastRefreshTime = 0L
+    private val refreshDebounceMs = 200L
+    
+    /**
      * 文档监听器
      */
     private val documentListener = object : DocumentListener {
@@ -31,8 +39,19 @@ class EditorDocumentListener(private val project: Project) : Disposable {
             val file = FileDocumentManager.getInstance().getFile(document)
 
             if (file != null && isLanguageFile(file)) {
-                // 立即刷新所有编辑器
-                refreshAllEditors()
+                // 防抖：避免频繁刷新
+                val currentTime = System.currentTimeMillis()
+                if (currentTime - lastRefreshTime < refreshDebounceMs) {
+                    return
+                }
+                lastRefreshTime = currentTime
+                
+                // 延迟刷新以合并连续的修改
+                ApplicationManager.getApplication().invokeLater({
+                    if (!project.isDisposed) {
+                        refreshEditorsForFile(file)
+                    }
+                }, project.disposed)
             }
         }
     }
@@ -92,7 +111,44 @@ class EditorDocumentListener(private val project: Project) : Disposable {
     }
 
     /**
-     * 刷新所有编辑器
+     * 针对特定文件刷新相关编辑器（优化版本）
+     */
+    private fun refreshEditorsForFile(changedFile: VirtualFile) {
+        // 清除该文件的缓存
+        LangParser.clearCache(changedFile)
+
+        // 只刷新包含 sendLang 调用的 Kotlin 文件
+        val fileEditorManager = FileEditorManager.getInstance(project)
+        val psiManager = PsiManager.getInstance(project)
+        val daemonCodeAnalyzer = com.intellij.codeInsight.daemon.DaemonCodeAnalyzer.getInstance(project)
+
+        fileEditorManager.allEditors.forEach { editor ->
+            if (editor is com.intellij.openapi.fileEditor.TextEditor) {
+                val virtualFile = editor.file
+                if (virtualFile != null && virtualFile.name.endsWith(".kt")) {
+                    val psiFile = psiManager.findFile(virtualFile)
+                    if (psiFile != null && containsSendLangCalls(psiFile)) {
+                        // 只重新分析包含 sendLang 调用的文件
+                        daemonCodeAnalyzer.restart(psiFile)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * 检查文件是否包含 sendLang 调用（简单启发式检查）
+     */
+    private fun containsSendLangCalls(psiFile: com.intellij.psi.PsiFile): Boolean {
+        return try {
+            psiFile.text.contains("sendLang")
+        } catch (e: Exception) {
+            true // 发生异常时默认刷新
+        }
+    }
+
+    /**
+     * 刷新所有编辑器（保留作为备用方法）
      */
     private fun refreshAllEditors() {
         // 清除所有缓存
@@ -114,23 +170,6 @@ class EditorDocumentListener(private val project: Project) : Disposable {
                             if (psiFile != null) {
                                 // 强制重新分析整个文件
                                 daemonCodeAnalyzer.restart(psiFile)
-                            }
-                        }
-                    }
-                }
-
-                // 延迟再次刷新，确保变更生效
-                com.intellij.openapi.application.ApplicationManager.getApplication().invokeLater {
-                    if (!project.isDisposed) {
-                        fileEditorManager.allEditors.forEach { editor ->
-                            if (editor is com.intellij.openapi.fileEditor.TextEditor) {
-                                val virtualFile = editor.file
-                                if (virtualFile != null) {
-                                    val psiFile = psiManager.findFile(virtualFile)
-                                    if (psiFile != null) {
-                                        daemonCodeAnalyzer.restart(psiFile)
-                                    }
-                                }
                             }
                         }
                     }

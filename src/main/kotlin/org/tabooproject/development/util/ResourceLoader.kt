@@ -29,11 +29,30 @@ object ResourceLoader {
         "github.com" to "https://raw.githubusercontent.com/TabooLib/taboolib-sdk/idea-template/Resources/"
     )
 
-
     /**
      * 当前使用的镜像URL
      */
     var currentMirrorUrl = MODULES_MIRRORS.values.first() // 使用第一个镜像（gitee.com）
+
+    /**
+     * 缓存的模块数据
+     */
+    @Volatile
+    var cacheJson: JsonObject? = null
+        set(value) {
+            field = value
+            // 更新 PropertiesComponent 缓存
+            value?.let { 
+                PropertiesComponent.getInstance().setValue("modules_json", it.toString())
+            }
+        }
+
+    /**
+     * 上次网络检查时间
+     */
+    @Volatile
+    private var lastNetworkCheckTime = 0L
+    private const val NETWORK_CHECK_INTERVAL_MS = 30_000L // 30秒内不重复网络检查
 
     init {
         // 尝试从设置中加载默认模块镜像
@@ -46,6 +65,23 @@ object ResourceLoader {
             }
         } catch (e: Exception) {
             logger.info { "无法加载保存的模块镜像设置，使用默认镜像: ${e.message}" }
+        }
+        
+        // 初始化时从缓存加载
+        loadFromCache()
+    }
+
+    /**
+     * 从 PropertiesComponent 加载缓存
+     */
+    private fun loadFromCache() {
+        try {
+            PropertiesComponent.getInstance().getValue("modules_json")?.let { cached ->
+                cacheJson = Json.parseToJsonElement(cached).jsonObject
+                logger.info { "从本地缓存加载模块数据成功" }
+            }
+        } catch (e: Exception) {
+            logger.info { "加载本地缓存失败: ${e.message}" }
         }
     }
 
@@ -88,12 +124,16 @@ object ResourceLoader {
         return null
     }
 
-    var cacheJson = PropertiesComponent.getInstance().getValue("modules_json")?.let<@NonNls String, JsonObject> {
-        Json.parseToJsonElement(it).jsonObject
-    }
-
     fun loadModules() {
         val loadLocalModulesToJson = loadLocalModulesToJson()
+        
+        // 防抖：避免频繁网络检查
+        val currentTime = System.currentTimeMillis()
+        if (currentTime - lastNetworkCheckTime < NETWORK_CHECK_INTERVAL_MS) {
+            logger.info { "距离上次网络检查时间过短，跳过" }
+            return
+        }
+        lastNetworkCheckTime = currentTime
 
         try {
             val remoteSha1 = tryDownloadFromMirrors("Modules.json.sha1")
@@ -117,34 +157,32 @@ object ResourceLoader {
                     logger.info { "校验通过,本地文件与远程文件一致,无需更新" }
                     if (cacheJson == null) {
                         logger.info { "缓存为空,将本地文件写入缓存" }
-                        PropertiesComponent.getInstance().setValue("modules_json", loadLocalModulesToJson.toString())
                         cacheJson = loadLocalModulesToJson
                     }
+                    return
+                }
+            }
+            
+            logger.info { "校验失败,本地文件与远程文件不一致,开始检查缓存" }
+            if (cacheJson == null) {
+                logger.info { "缓存为空,开始下载远程文件并更新缓存" }
+                try {
+                    cacheJson = downloadRemoteJson()
+                } catch (e: Exception) {
+                    logger.info { "下载远程文件失败: ${e.message}, 使用本地文件" }
+                    fallbackToLocal(loadLocalModulesToJson)
+                }
+            } else {
+                logger.info { "开始检查缓存" }
+                val cacheSha1 = sha1(cacheJson.toString())
+                if (cacheSha1.trim() == remoteSha1.trim()) {
+                    logger.info { "缓存与远程文件一致,无需更新" }
                 } else {
-                    logger.info { "校验失败,本地文件与远程文件不一致,开始检查缓存" }
-                    if (cacheJson == null) {
-                        logger.info { "缓存为空,开始下载远程文件并更新缓存" }
-                        try {
-                            cacheJson = downloadRemoteJson()
-                            PropertiesComponent.getInstance().setValue("modules_json", cacheJson.toString())
-                        } catch (e: Exception) {
-                            logger.info { "下载远程文件失败: ${e.message}, 使用本地文件" }
-                            fallbackToLocal(loadLocalModulesToJson)
-                        }
-                    } else {
-                        logger.info { "开始检查缓存" }
-                        val cacheSha1 = sha1(cacheJson.toString())
-                        if (cacheSha1.trim() == remoteSha1.trim()) {
-                            logger.info { "缓存与远程文件一致,无需更新" }
-                        } else {
-                            logger.info { "缓存与远程文件不一致,开始下载远程文件并更新缓存" }
-                            try {
-                                cacheJson = downloadRemoteJson()
-                                PropertiesComponent.getInstance().setValue("modules_json", cacheJson.toString())
-                            } catch (e: Exception) {
-                                logger.info { "下载远程文件失败: ${e.message}, 继续使用现有缓存" }
-                            }
-                        }
+                    logger.info { "缓存与远程文件不一致,开始下载远程文件并更新缓存" }
+                    try {
+                        cacheJson = downloadRemoteJson()
+                    } catch (e: Exception) {
+                        logger.info { "下载远程文件失败: ${e.message}, 继续使用现有缓存" }
                     }
                 }
             }
@@ -161,7 +199,6 @@ object ResourceLoader {
         if (cacheJson == null) {
             logger.info { "使用本地文件作为缓存" }
             cacheJson = localJson
-            PropertiesComponent.getInstance().setValue("modules_json", localJson.toString())
         } else {
             logger.info { "使用现有缓存" }
         }

@@ -11,6 +11,7 @@ import com.intellij.openapi.editor.event.EditorFactoryListener
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.startup.ProjectActivity
 import com.intellij.psi.PsiDocumentManager
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * TabooLib语言文件折叠编辑器监听器
@@ -21,22 +22,29 @@ import com.intellij.psi.PsiDocumentManager
  */
 class LangFoldingEditorListener : ProjectActivity {
 
+    companion object {
+        // 使用弱引用集合跟踪已处理的编辑器，避免重复处理
+        private val processedEditors = ConcurrentHashMap.newKeySet<Editor>()
+    }
+
     override suspend fun execute(project: Project) {
         // 注册编辑器工厂监听器
         ApplicationManager.getApplication().invokeLater {
             EditorFactory.getInstance().addEditorFactoryListener(object : EditorFactoryListener {
                 override fun editorCreated(event: EditorFactoryEvent) {
                     val editor = event.editor
-                    if (editor.project == project) {
+                    if (editor.project == project && !processedEditors.contains(editor)) {
+                        processedEditors.add(editor)
                         setupEditorListener(editor, project)
                         
-                        // 编辑器创建后立即触发初始折叠检查
-                        ApplicationManager.getApplication().invokeLater {
-                            if (!editor.isDisposed) {
-                                scheduleInitialFolding(editor, project)
-                            }
-                        }
+                        // 延迟初始化折叠，合并多个延迟调用
+                        scheduleInitialFolding(editor, project)
                     }
+                }
+                
+                override fun editorReleased(event: EditorFactoryEvent) {
+                    // 清理已释放的编辑器引用
+                    processedEditors.remove(event.editor)
                 }
             }, project)
         }
@@ -46,30 +54,25 @@ class LangFoldingEditorListener : ProjectActivity {
         // 添加光标监听器
         editor.caretModel.addCaretListener(object : CaretListener {
             override fun caretPositionChanged(event: CaretEvent) {
-                // 当光标移动时，检查是否需要刷新折叠
+                // 防抖：避免频繁刷新
                 scheduleRefreshFolding(editor, project)
             }
         })
     }
 
     private fun scheduleInitialFolding(editor: Editor, project: Project) {
-        // 初始折叠需要更长的延迟，确保折叠区域已经创建
+        // 合并延迟操作，减少EDT负载
         ApplicationManager.getApplication().invokeLater({
             if (!editor.isDisposed && !project.isDisposed) {
-                // 等待折叠区域创建完成
-                ApplicationManager.getApplication().invokeLater({
-                    if (!editor.isDisposed && !project.isDisposed) {
-                        performInitialFolding(editor, project)
-                    }
-                }, project.disposed)
+                performInitialFolding(editor, project)
             }
         }, project.disposed)
     }
 
     private fun scheduleRefreshFolding(editor: Editor, project: Project) {
-        // 延迟执行，避免过于频繁的刷新
+        // 简化延迟逻辑，减少嵌套调用
         ApplicationManager.getApplication().invokeLater({
-            if (!editor.isDisposed) {
+            if (!editor.isDisposed && !project.isDisposed) {
                 refreshFolding(editor, project)
             }
         }, project.disposed)
@@ -83,10 +86,8 @@ class LangFoldingEditorListener : ProjectActivity {
         if (psiFile?.language?.id == "kotlin") {
             val foldingManager = CodeFoldingManager.getInstance(project)
             
-            // 使用更现代的API重建折叠区域
             ApplicationManager.getApplication().runWriteAction {
                 try {
-                    // 使用更新的折叠管理方式
                     foldingManager.updateFoldRegions(editor)
                     
                     // 延迟应用初始折叠状态
@@ -108,30 +109,22 @@ class LangFoldingEditorListener : ProjectActivity {
         ApplicationManager.getApplication().runWriteAction {
             try {
                 foldingModel.runBatchFoldingOperation {
-                    // 获取当前光标位置
-                    val caretOffset = editor.caretModel.offset
-                    
-                    // 为所有TabooLib语言折叠区域设置初始状态
+                    // 初始化时折叠所有TabooLib翻译区域
                     for (foldRegion in foldingModel.allFoldRegions) {
                         val group = foldRegion.group
                         if (group?.toString()?.startsWith("taboolib.translation.") == true) {
                             if (LangFoldingSettings.instance.shouldFoldTranslations) {
-                                // 检查光标是否在折叠区域内
-                                val isCaretInside = caretOffset >= foldRegion.startOffset && 
-                                                  caretOffset <= foldRegion.endOffset
-                                
-                                // 根据光标位置设置初始折叠状态：光标不在内部则折叠
-                                foldRegion.isExpanded = isCaretInside
+                                foldRegion.isExpanded = false
                             }
                         }
                     }
                 }
             } catch (e: Exception) {
-                // 忽略异常
+                // 忽略异常，避免影响编辑器性能
             }
         }
     }
-
+    
     private fun refreshFolding(editor: Editor, project: Project) {
         val document = editor.document
         val psiFile = PsiDocumentManager.getInstance(project).getPsiFile(document)
