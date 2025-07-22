@@ -86,20 +86,31 @@ class LangFoldingEditorListener : ProjectActivity {
         if (psiFile?.language?.id == "kotlin") {
             val foldingManager = CodeFoldingManager.getInstance(project)
             
-            ApplicationManager.getApplication().runWriteAction {
-                try {
-                    foldingManager.updateFoldRegions(editor)
-                    
-                    // 延迟应用初始折叠状态
-                    ApplicationManager.getApplication().invokeLater({
+            // 使用 ReadAction.nonBlocking 避免 EDT 线程访问违规
+            com.intellij.openapi.application.ReadAction.nonBlocking {
+                // 在后台线程中准备数据
+                if (!editor.isDisposed && !project.isDisposed) {
+                    // 切换到 EDT 执行写操作
+                    ApplicationManager.getApplication().invokeLater {
                         if (!editor.isDisposed && !project.isDisposed) {
-                            applyInitialFoldingState(editor, project)
+                            ApplicationManager.getApplication().runWriteAction {
+                                try {
+                                    foldingManager.updateFoldRegions(editor)
+                                    
+                                    // 延迟应用初始折叠状态
+                                    ApplicationManager.getApplication().invokeLater({
+                                        if (!editor.isDisposed && !project.isDisposed) {
+                                            applyInitialFoldingState(editor, project)
+                                        }
+                                    }, project.disposed)
+                                } catch (e: Exception) {
+                                    // 忽略异常
+                                }
+                            }
                         }
-                    }, project.disposed)
-                } catch (e: Exception) {
-                    // 忽略异常
+                    }
                 }
-            }
+            }.submit(com.intellij.util.concurrency.AppExecutorUtil.getAppExecutorService())
         }
     }
 

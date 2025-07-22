@@ -125,38 +125,42 @@ class LangFoldingDocumentListener : ProjectActivity {
                 val foldingManager = CodeFoldingManager.getInstance(project)
                 val foldingModel = editor.foldingModel
                 
-                // 在写入操作中更新折叠
-                ApplicationManager.getApplication().runWriteAction {
-                    try {
-                        foldingModel.runBatchFoldingOperation {
-                            // 重新构建折叠区域
-                            foldingManager.updateFoldRegions(editor)
-                            
-                            // 获取当前光标位置
-                            val caretOffset = editor.caretModel.offset
-                            
-                            // 智能处理TabooLib翻译折叠区域
-                            for (foldRegion in foldingModel.allFoldRegions) {
-                                val group = foldRegion.group
-                                if (group?.toString()?.startsWith("taboolib.translation.") == true) {
-                                    if (LangFoldingSettings.instance.shouldFoldTranslations) {
-                                        // 检查光标是否在折叠区域内
-                                        val isCaretInside = caretOffset >= foldRegion.startOffset && 
-                                                          caretOffset <= foldRegion.endOffset
-                                        
-                                        if (isCaretInside) {
-                                            // 如果光标在折叠区域内，展开它
-                                            foldRegion.isExpanded = true
-                                        } else {
-                                            // 如果光标不在折叠区域内，折叠它
-                                            foldRegion.isExpanded = false
+                // 确保在 EDT 中执行写操作
+                ApplicationManager.getApplication().invokeLater {
+                    if (!editor.isDisposed && !project.isDisposed) {
+                        ApplicationManager.getApplication().runWriteAction {
+                            try {
+                                foldingModel.runBatchFoldingOperation {
+                                    // 重新构建折叠区域
+                                    foldingManager.updateFoldRegions(editor)
+                                    
+                                    // 获取当前光标位置
+                                    val caretOffset = editor.caretModel.offset
+                                    
+                                    // 智能处理TabooLib翻译折叠区域
+                                    for (foldRegion in foldingModel.allFoldRegions) {
+                                        val group = foldRegion.group
+                                        if (group?.toString()?.startsWith("taboolib.translation.") == true) {
+                                            if (LangFoldingSettings.instance.shouldFoldTranslations) {
+                                                // 检查光标是否在折叠区域内
+                                                val isCaretInside = caretOffset >= foldRegion.startOffset && 
+                                                                  caretOffset <= foldRegion.endOffset
+                                                
+                                                if (isCaretInside) {
+                                                    // 如果光标在折叠区域内，展开它
+                                                    foldRegion.isExpanded = true
+                                                } else {
+                                                    // 如果光标不在折叠区域内，折叠它
+                                                    foldRegion.isExpanded = false
+                                                }
+                                            }
                                         }
                                     }
                                 }
+                            } catch (e: Exception) {
+                                // 忽略异常，避免影响编辑器性能
                             }
                         }
-                    } catch (e: Exception) {
-                        // 忽略异常，避免影响编辑器性能
                     }
                 }
             }

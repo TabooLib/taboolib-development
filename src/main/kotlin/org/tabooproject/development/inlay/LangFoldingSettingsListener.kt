@@ -2,10 +2,12 @@ package org.tabooproject.development.inlay
 
 import com.intellij.codeInsight.folding.CodeFoldingManager
 import com.intellij.openapi.application.ApplicationManager
+import com.intellij.openapi.application.ReadAction
 import com.intellij.openapi.editor.EditorFactory
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManager
 import com.intellij.openapi.startup.ProjectActivity
+import com.intellij.util.concurrency.AppExecutorUtil
 
 /**
  * TabooLib语言文件折叠设置变更监听器
@@ -27,29 +29,36 @@ class LangFoldingSettingsListener : ProjectActivity {
          * 刷新所有打开编辑器的折叠状态
          */
         fun refreshAllEditors() {
-            ApplicationManager.getApplication().invokeLater {
+            ReadAction.nonBlocking {
                 val projects = ProjectManager.getInstance().openProjects
                 for (project in projects) {
                     if (!project.isDisposed) {
                         refreshProjectEditors(project)
                     }
                 }
-            }
+            }.submit(AppExecutorUtil.getAppExecutorService())
         }
         
         /**
          * 刷新指定项目的所有编辑器折叠状态
          */
         private fun refreshProjectEditors(project: Project) {
+            if (project.isDisposed) return
+            
             val editors = EditorFactory.getInstance().allEditors
             for (editor in editors) {
                 if (editor.project == project && !editor.isDisposed) {
-                    ApplicationManager.getApplication().runWriteAction {
-                        try {
-                            val foldingManager = CodeFoldingManager.getInstance(project)
-                            foldingManager.buildInitialFoldings(editor)
-                        } catch (e: Exception) {
-                            // 忽略异常
+                    // 在 EDT 中执行写操作
+                    ApplicationManager.getApplication().invokeLater {
+                        if (!editor.isDisposed && !project.isDisposed) {
+                            ApplicationManager.getApplication().runWriteAction {
+                                try {
+                                    val foldingManager = CodeFoldingManager.getInstance(project)
+                                    foldingManager.buildInitialFoldings(editor)
+                                } catch (e: Exception) {
+                                    // 忽略异常
+                                }
+                            }
                         }
                     }
                 }
