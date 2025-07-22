@@ -81,17 +81,30 @@ private inline fun <reified T : PsiElement> PsiElement.findParent(
 }
 
 fun readFromUrl(url: String): String? {
-    val client = createOkHttpClientWithSystemProxy {
-        connectTimeout(10, TimeUnit.SECONDS)
-        readTimeout(10, TimeUnit.SECONDS)
+    return try {
+        val client = createOkHttpClientWithSystemProxy {
+            connectTimeout(30, TimeUnit.SECONDS)  // 增加超时时间
+            readTimeout(30, TimeUnit.SECONDS)
+            writeTimeout(30, TimeUnit.SECONDS)
+            // 添加重试机制
+            retryOnConnectionFailure(true)
+        }
+
+        val response = client
+            .newCall(getRequest(url))
+            .execute()
+
+        if (!response.isSuccessful) {
+            throw IOException("HTTP ${response.code}: ${response.message} for URL: $url")
+        }
+
+        response.body?.string()
+    } catch (e: Exception) {
+        // 记录详细错误信息但不抛出异常，让调用方决定如何处理
+        println("Network request failed for $url: ${e.message}")
+        e.printStackTrace()
+        null
     }
-
-    val response = client
-        .newCall(getRequest(url))
-        .execute()
-        .takeIf { it.isSuccessful } ?: throw IOException("Failed to get $url")
-
-    return response.body?.string()
 }
 
 fun PsiClass.getContainingPackageName(): String? {

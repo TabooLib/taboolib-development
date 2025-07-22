@@ -7,11 +7,13 @@ import com.intellij.ide.wizard.AbstractWizard
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressManager
 import com.intellij.openapi.ui.DialogBuilder
+import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.ex.MultiLineLabel
 import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.Disposer
 import com.intellij.ui.dsl.builder.columns
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.JBColor
 import com.intellij.util.xml.ui.MultiLineTextPanel
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
@@ -21,6 +23,7 @@ import org.tabooproject.development.component.CheckModulePanel
 import org.tabooproject.development.util.ResourceLoader
 import org.tabooproject.development.util.ResourceLoader.loadModules
 import org.tabooproject.development.settings.TabooLibProjectSettings
+import java.awt.Dimension
 import java.lang.reflect.Method
 import javax.swing.JComponent
 import javax.swing.JTextField
@@ -62,9 +65,9 @@ data class Module(
 )
 
 
-val TEMPLATE_DOWNLOAD_MIRROR = mapOf(
-    "github.com" to "https://github.com/TabooLib/taboolib-sdk/archive/refs/heads/idea-template.zip",
+val TEMPLATE_DOWNLOAD_MIRROR = linkedMapOf(
     "tabooproject.org" to "https://template.tabooproject.org",
+    "github.com" to "https://github.com/TabooLib/taboolib-sdk/archive/refs/heads/idea-template.zip"
 )
 
 data class ConfigurationProperty(
@@ -89,7 +92,13 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
     init {
         // 注册 checkModulePanel 到 wizard context 的 disposable
         Disposer.register(context.disposable, checkModulePanel)
-        
+
+        // 设置ResourceLoader使用保存的模块镜像
+        val savedModulesMirror = settings.getDefaultModulesMirror()
+        if (ResourceLoader.getAvailableMirrors().containsKey(savedModulesMirror)) {
+            ResourceLoader.setMirror(savedModulesMirror)
+        }
+
         // 加载用户的默认设置
         loadDefaultSettings()
     }
@@ -117,50 +126,66 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
     }
 
     override fun getComponent(): JComponent {
-        return panel {
+        val mainPanel = panel {
             indent {
-                group("Configuration Properties", indent = true) {
+                // 基本配置区域
+                group("Project Configuration", indent = true) {
                     row("Plugin name:") {
                         textField()
                             .apply {
                                 component.text = property.name
-                                component.columns = 30
+                                component.columns = 35
+                                component.toolTipText = "Enter your plugin name (e.g., MyAwesome Plugin)"
                             }.onChanged {
                                 autoChangeMainClass(it.text)
                                 property.name = it.text
                             }
-                    }
+                    }.rowComment("The display name of your plugin")
+
                     row("Plugin main class:") {
                         textField()
                             .apply {
                                 component.text = property.mainClass
-                                component.columns = 30
+                                component.columns = 35
+                                component.toolTipText = "Full class name including package (e.g., com.example.myplugin.MyPlugin)"
                                 mainClassTextField = this.component
                             }.onChanged { property.mainClass = it.text }
-                    }
+                    }.rowComment("The main class that extends TabooLib plugin")
+
                     row("Plugin version:") {
                         textField()
                             .apply {
                                 component.text = property.version
-                                component.columns = 30
+                                component.columns = 35
+                                component.toolTipText = "Semantic version (e.g., 1.0.0, 2.1.3-SNAPSHOT)"
                             }.onChanged { property.version = it.text }
+                    }.rowComment("Initial version of your plugin")
+                }
+
+                // 添加分隔空间
+                separator()
+
+                // 模块选择区域 - 单独成组，更突出
+                group("Module Selection", indent = false) {
+                    row {
+                        text("Choose the TabooLib modules your plugin will use. Selected modules will be included in your project dependencies.")
+                            .apply {
+                                component.foreground = JBColor.GRAY
+                            }
                     }
                     row {
                         cell(checkModulePanel)
-                    }
-                    row { text("") }
-                    row("Select template download mirror:") {
-                        comboBox(TEMPLATE_DOWNLOAD_MIRROR.keys)
-                            .apply {
-                                component.selectedIndex = 0
-                                component.columns(20)
-                            }.onChanged {
-                                property.mirrorIndex = it.selectedItem as String
-                            }
+                            .align(com.intellij.ui.dsl.builder.AlignX.FILL)
                     }
                 }
+
             }
         }
+
+        // 设置主面板的最大尺寸以防止对话框过高
+        mainPanel.maximumSize = Dimension(Int.MAX_VALUE, 750)
+
+        return mainPanel
     }
 
     private val doPreviousActionMethod: Method by lazy {
@@ -169,46 +194,71 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override fun _init() {
         if (inited) return
 
+        // 在后台线程加载模块数据
         ProgressManager.getInstance().runProcessWithProgressSynchronously(
             ThrowableComputable {
                 try {
+                    // 确保模块数据加载完成
                     loadModules()
-                } catch (e: Exception) {
-                    val wizard = context.getUserData(AbstractWizard.KEY)
-                    doPreviousActionMethod.invoke(wizard)
-
+                    
+                    // 在EDT中更新UI
                     ApplicationManager.getApplication().invokeLater {
-                        DialogBuilder().apply {
-                            setTitle("Download module list failed")
-                            setCenterPanel(MultiLineLabel(e.message).apply {
-
-                            })
-                            addCancelAction().setText("Cancel")
-                        }.show()
+                        try {
+                            val modules = ResourceLoader.getModules()
+                            
+                            // 检查模块数据是否为空
+                            if (modules.isEmpty()) {
+                                println("警告：模块数据为空，将使用本地文件")
+                                // 强制重新加载本地文件
+                                ResourceLoader.cacheJson = ResourceLoader.loadLocalModulesToJson()
+                                val localModules = ResourceLoader.getModules()
+                                checkModulePanel.setModules(localModules)
+                            } else {
+                                checkModulePanel.setModules(modules)
+                            }
+                            
+                            applyFavoriteModulesFromSettings()
+                            inited = true
+                            
+                            println("模块数据加载完成，共 ${modules.size} 个分类")
+                        } catch (e: Exception) {
+                            println("UI更新失败: ${e.message}")
+                            e.printStackTrace()
+                            // 尝试使用本地文件作为备用
+                            try {
+                                val localModules = ResourceLoader.parseModules(ResourceLoader.loadLocalModulesToJson())
+                                checkModulePanel.setModules(localModules)
+                                inited = true
+                                println("使用本地文件加载模块数据成功")
+                            } catch (localError: Exception) {
+                                println("本地文件加载也失败: ${localError.message}")
+                                localError.printStackTrace()
+                            }
+                        }
                     }
-                    throw e
+                } catch (e: Exception) {
+                    println("加载模块列表时出现问题: ${e.message}")
+                    e.printStackTrace()
+                    
+                    // 在EDT中尝试使用本地文件
+                    ApplicationManager.getApplication().invokeLater {
+                        try {
+                            val localModules = ResourceLoader.parseModules(ResourceLoader.loadLocalModulesToJson())
+                            checkModulePanel.setModules(localModules)
+                            inited = true
+                            println("使用本地文件作为备用方案成功")
+                        } catch (localError: Exception) {
+                            println("本地文件备用方案也失败: ${localError.message}")
+                            localError.printStackTrace()
+                        }
+                    }
                 }
             },
-            "Downloading modules list", false, context.project
+            "Loading modules list", false, context.project
         )
-
-        GlobalScope.launch {
-            coroutineScope {
-                val modules = ResourceLoader.getModules()
-
-                checkModulePanel.setModules(modules)
-                applyFavoriteModulesFromSettings()
-                
-                // 应用用户的常用模块设置
-                ApplicationManager.getApplication().invokeLater {
-                    inited = true
-                }
-            }
-        }
     }
 
 
@@ -237,16 +287,16 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
             val packagePrefix = settings.getDefaultPackagePrefix()
             val projectName = property.name ?: "Untitled"
             property.mainClass = "$packagePrefix.${projectName.lowercase()}.${projectName.capitalize()}"
-            
+
             // 更新UI中的文本字段
             mainClassTextField?.text = property.mainClass
         }
-        
+
         // 应用默认模板镜像
         if (settings.getDefaultTemplateMirror().isNotEmpty()) {
             property.mirrorIndex = settings.getDefaultTemplateMirror()
         }
-        
+
         // 应用常用模块设置（需要在模块数据加载后）
         applyFavoriteModulesWhenReady()
     }
@@ -266,13 +316,13 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
      * 从设置中应用常用模块
      */
     private fun applyFavoriteModulesFromSettings() {
-        val favoriteModuleIds = settings.getFavoriteModules()
-        if (favoriteModuleIds.isNotEmpty()) {
-
-            println("apply fav modules ${favoriteModuleIds}")
-            // 直接设置选中的模块
-            checkModulePanel.setSelectedModules(favoriteModuleIds)
-        }
+        // 不再自动应用常用模块，让右侧默认为空
+        // val favoriteModuleIds = settings.getFavoriteModules()
+        // if (favoriteModuleIds.isNotEmpty()) {
+        //     println("apply fav modules ${favoriteModuleIds}")
+        //     // 直接设置选中的模块
+        //     checkModulePanel.setSelectedModules(favoriteModuleIds)
+        // }
     }
 
     /**

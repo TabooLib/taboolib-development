@@ -4,21 +4,56 @@ import com.intellij.openapi.vfs.VirtualFile
 import java.io.IOException
 
 /**
- * TabooLib 语言文件解析器
+ * TabooLib语言文件解析器
  * 
- * 负责解析 YAML 格式的语言文件，支持嵌套键值对访问
+ * 负责解析YAML格式的语言文件
  * 
- * @since 1.32
+ * @since 1.42
  */
-object LangFileParser {
+object LangParser {
     
     /**
-     * 解析语言文件内容
+     * 缓存已解析的语言文件
+     */
+    private val langCache = mutableMapOf<String, Map<String, String>>()
+    
+    /**
+     * 解析语言文件
+     * 
+     * @param file 要解析的语言文件
+     * @param forceReload 是否强制重新加载
+     * @return 语言条目列表
+     */
+    fun parseLangFile(file: VirtualFile, forceReload: Boolean = false): List<Lang> {
+        val cacheKey = getCacheKey(file)
+        
+        // 如果需要强制重新加载或者缓存中没有，则解析文件
+        val langMap = if (forceReload || !langCache.containsKey(cacheKey)) {
+            parseFile(file).also { langCache[cacheKey] = it }
+        } else {
+            langCache[cacheKey] ?: emptyMap()
+        }
+        
+        return langMap.map { (key, value) -> Lang(key, value) }
+    }
+    
+    /**
+     * 获取缓存键
      * 
      * @param file 语言文件
+     * @return 缓存键
+     */
+    private fun getCacheKey(file: VirtualFile): String {
+        return "${file.path}:${file.modificationStamp}"
+    }
+    
+    /**
+     * 解析文件内容
+     * 
+     * @param file 要解析的文件
      * @return 解析后的键值对映射
      */
-    fun parseLanguageFile(file: VirtualFile): Map<String, String> {
+    private fun parseFile(file: VirtualFile): Map<String, String> {
         if (!file.exists() || file.isDirectory) {
             return emptyMap()
         }
@@ -32,9 +67,9 @@ object LangFileParser {
     }
     
     /**
-     * 解析 YAML 内容为扁平化键值对
+     * 解析YAML内容
      * 
-     * @param content YAML 文件内容
+     * @param content YAML内容
      * @return 扁平化的键值对映射
      */
     private fun parseYamlContent(content: String): Map<String, String> {
@@ -46,9 +81,9 @@ object LangFileParser {
     }
     
     /**
-     * 递归解析 YAML 行
+     * 递归解析YAML行
      * 
-     * @param lines 待解析的行列表
+     * @param lines 行列表
      * @param result 结果映射
      * @param parentKeys 父级键路径
      */
@@ -138,13 +173,16 @@ object LangFileParser {
     }
     
     /**
-     * 根据键获取语言文本
+     * 清除文件缓存
      * 
-     * @param langMap 语言映射
-     * @param key 语言键
-     * @return 对应的语言文本，如果未找到返回 null
+     * @param file 要清除缓存的文件，如果为null则清除所有缓存
      */
-    fun getLanguageText(langMap: Map<String, String>, key: String): String? {
-        return langMap[key]
+    fun clearCache(file: VirtualFile? = null) {
+        if (file == null) {
+            langCache.clear()
+        } else {
+            val cacheKey = getCacheKey(file)
+            langCache.remove(cacheKey)
+        }
     }
 } 
