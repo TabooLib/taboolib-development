@@ -125,22 +125,18 @@ class LangFoldingBuilder : FoldingBuilderEx(), DumbAware {
         val calleeText = callExpression.calleeExpression?.text ?: return false
 
         // 直接调用sendLang
-        if (calleeText == "sendLang") {
+        if (calleeText == "sendLang" || calleeText == "asLangText") {
             return true
         }
 
         // 处理 player.sendLang 这种模式
-        if (calleeText.endsWith(".sendLang")) {
+        if (calleeText.endsWith(".sendLang") || calleeText.endsWith(".asLangText")) {
             return true
         }
 
         // 处理其它可能的sendLang调用方式
         val dotIndex = calleeText.lastIndexOf('.')
-        if (dotIndex > 0 && calleeText.substring(dotIndex + 1) == "sendLang") {
-            return true
-        }
-
-        return false
+        return dotIndex > 0 && (calleeText.substring(dotIndex + 1) == "sendLang" || calleeText.substring(dotIndex + 1) == "asLangText")
     }
 
     /**

@@ -27,10 +27,8 @@
         <strong>v1.41</strong>
         <ul>
             <li>Full compatibility with Kotlin K2 compiler</li>
-            <li>Updated for IntelliJ IDEA 2024.3+ compatibility</li>
-            <li>Enhanced code analysis performance</li>
-            <li>Improved stability with latest Kotlin versions</li>
-            <li>Migrated to IntelliJ Platform Gradle Plugin 2.0</li>
+            <li>Refactor new project wizard setup</li>
+            <li>Added TabooLib i18n support</li>
         </ul>
     ]]></change-notes>
 
