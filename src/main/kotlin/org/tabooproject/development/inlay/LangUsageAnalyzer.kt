@@ -24,6 +24,8 @@ object LangUsageAnalyzer {
     
     // 缓存使用情况分析结果
     private val usageCache = ConcurrentHashMap<String, LangUsageResult>()
+    // 缓存文件最后修改时间，用于检测缓存是否过期
+    private val fileModificationCache = ConcurrentHashMap<String, Long>()
     
     /**
      * 语言使用结果
@@ -49,8 +51,10 @@ object LangUsageAnalyzer {
     fun analyzeLangUsage(project: Project): LangUsageResult {
         val projectPath = project.basePath ?: return LangUsageResult(emptySet(), emptyMap())
         
-        // 检查缓存
-        usageCache[projectPath]?.let { return it }
+        // 检查缓存是否过期
+        if (isCacheValid(project, projectPath)) {
+            usageCache[projectPath]?.let { return it }
+        }
         
         val usedKeys = mutableSetOf<String>()
         val keyUsages = mutableMapOf<String, MutableList<LangUsageLocation>>()
@@ -85,6 +89,9 @@ object LangUsageAnalyzer {
         
         val result = LangUsageResult(usedKeys, keyUsages)
         usageCache[projectPath] = result
+        
+        // 更新文件修改时间缓存
+        updateFileModificationCache(project, projectPath)
         
         return result
     }
@@ -122,10 +129,42 @@ object LangUsageAnalyzer {
             val projectPath = project.basePath
             if (projectPath != null) {
                 usageCache.remove(projectPath)
+                fileModificationCache.remove(projectPath)
             }
         } else {
             usageCache.clear()
+            fileModificationCache.clear()
         }
+    }
+
+    /**
+     * 检查缓存是否有效
+     */
+    private fun isCacheValid(project: Project, projectPath: String): Boolean {
+        if (!usageCache.containsKey(projectPath)) {
+            return false
+        }
+        
+        val cachedTime = fileModificationCache[projectPath] ?: return false
+        val currentMaxModificationTime = getCurrentMaxModificationTime(project)
+        
+        return cachedTime >= currentMaxModificationTime
+    }
+
+    /**
+     * 获取项目中所有Kotlin文件的最大修改时间
+     */
+    private fun getCurrentMaxModificationTime(project: Project): Long {
+        val kotlinFiles = findKotlinFiles(project)
+        return kotlinFiles.maxOfOrNull { it.timeStamp } ?: 0L
+    }
+
+    /**
+     * 更新文件修改时间缓存
+     */
+    private fun updateFileModificationCache(project: Project, projectPath: String) {
+        val maxModificationTime = getCurrentMaxModificationTime(project)
+        fileModificationCache[projectPath] = maxModificationTime
     }
     
     /**
