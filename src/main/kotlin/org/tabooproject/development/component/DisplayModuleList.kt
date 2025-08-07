@@ -1,20 +1,17 @@
 package org.tabooproject.development.component
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.util.Disposer
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBList
 import com.intellij.ui.components.JBScrollPane
-import com.intellij.ui.*
 import com.intellij.util.ui.JBUI
 import org.tabooproject.development.step.Module
-import javax.swing.DefaultListModel
-import javax.swing.JPanel
-import javax.swing.ListCellRenderer
-import javax.swing.JLabel
-import java.awt.*
+import java.awt.BorderLayout
+import java.awt.Cursor
+import java.awt.Font
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
-import javax.swing.SwingConstants
+import javax.swing.*
 
 /**
  * 显示已选模块的列表组件

@@ -5,7 +5,6 @@ import com.intellij.openapi.fileEditor.OpenFileDescriptor
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.PsiManager
-import com.intellij.psi.search.PsiElementProcessor
 
 /**
  * 语言文件导航器

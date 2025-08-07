@@ -1,6 +1,5 @@
 package org.tabooproject.development.inlay
 
-import com.intellij.codeInsight.folding.CodeFoldingManager
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.editor.Editor
 import com.intellij.openapi.editor.EditorFactory

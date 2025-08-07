@@ -6,27 +6,21 @@ import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.ide.wizard.AbstractWizard
 import com.intellij.openapi.application.ApplicationManager
 import com.intellij.openapi.progress.ProgressManager
-import com.intellij.openapi.ui.DialogBuilder
-import com.intellij.openapi.ui.ComboBox
-import com.intellij.openapi.ui.ex.MultiLineLabel
-import com.intellij.openapi.util.ThrowableComputable
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.dsl.builder.columns
+import com.intellij.openapi.util.ThrowableComputable
+import com.intellij.ui.components.JBScrollPane
+import com.intellij.ui.dsl.builder.AlignX
 import com.intellij.ui.dsl.builder.panel
-import com.intellij.ui.JBColor
-import com.intellij.util.xml.ui.MultiLineTextPanel
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.launch
+import com.intellij.util.ui.JBUI
 import org.tabooproject.development.component.CheckModulePanel
+import org.tabooproject.development.settings.TabooLibProjectSettings
 import org.tabooproject.development.util.ResourceLoader
 import org.tabooproject.development.util.ResourceLoader.loadModules
-import org.tabooproject.development.settings.TabooLibProjectSettings
 import java.awt.Dimension
 import java.lang.reflect.Method
 import javax.swing.JComponent
 import javax.swing.JTextField
+import javax.swing.ScrollPaneConstants
 
 //private fun fetchAndParseModules(
 //    url: String = "https://raw.githubusercontent.com/TabooLib/taboolib-gradle-plugin/master/src/main/kotlin/io/izzel/taboolib/gradle/Standards.kt",
@@ -73,7 +67,7 @@ val TEMPLATE_DOWNLOAD_MIRROR = linkedMapOf(
 data class ConfigurationProperty(
     var name: String? = null,
     var mainClass: String = "org.example.untitled.Untitled",
-    var version: String = "1.0-SNAPSHOT",
+    var version: String = "1.0.0-SNAPSHOT",
     var mirrorIndex: String = "github.com",
     val modules: MutableList<Module> = mutableListOf() // 不给默认模块了
 ) {
@@ -128,64 +122,114 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
     override fun getComponent(): JComponent {
         val mainPanel = panel {
             indent {
-                // 基本配置区域
-                group("Project Configuration", indent = true) {
-                    row("Plugin name:") {
+                // 添加向导步骤指示器
+                row {
+                    text("<h3>第 2 步，共3 步：插件配置</h3>" +
+                         "<p>配置您的插件详细信息并选择 TabooLib 模块</p>")
+                        .apply {
+                            component.border = JBUI.Borders.empty(0, 0, 20, 0)
+                        }
+                }
+
+                // 插件基础配置
+                group("⚙️ 插件详情", indent = false) {
+                    row("插件名称:") {
                         textField()
+                            .focused()
+                            .validationOnInput { textField ->
+                                when {
+                                    textField.text.isBlank() -> error("插件名称不能为空")
+                                    textField.text.length < 3 -> error("插件名称至少需要 3 个字符")
+                                    else -> null
+                                }
+                            }
                             .apply {
                                 component.text = property.name
-                                component.columns = 35
-                                component.toolTipText = "Enter your plugin name (e.g., MyAwesome Plugin)"
+                                component.columns = 40
+                                component.toolTipText = "插件的显示名称\n示例：我的强大插件"
                             }.onChanged {
                                 autoChangeMainClass(it.text)
                                 property.name = it.text
                             }
-                    }.rowComment("The display name of your plugin")
+                    }.rowComment("<i>在插件列表和日志中显示的名称</i>")
 
-                    row("Plugin main class:") {
+                    row("主类:") {
                         textField()
+                            .validationOnInput { textField ->
+                                when {
+                                    textField.text.isBlank() -> error("主类不能为空")
+                                    !textField.text.matches(Regex("[a-zA-Z][a-zA-Z0-9_.]*[a-zA-Z0-9]")) -> 
+                                        error("类名格式不正确")
+                                    !textField.text.contains(".") -> 
+                                        warning("建议使用包名（例如：com.example.MyPlugin）")
+                                    else -> null
+                                }
+                            }
                             .apply {
                                 component.text = property.mainClass
-                                component.columns = 35
-                                component.toolTipText = "Full class name including package (e.g., com.example.myplugin.MyPlugin)"
+                                component.columns = 40
+                                component.toolTipText = "包含包名的完整类名\n" +
+                                                       "示例：com.example.myplugin.MyPlugin"
                                 mainClassTextField = this.component
                             }.onChanged { property.mainClass = it.text }
-                    }.rowComment("The main class that extends TabooLib plugin")
+                    }.rowComment("<i>继承 TabooLib 插件的主类（根据插件名称自动生成）</i>")
 
-                    row("Plugin version:") {
+                    row("版本:") {
                         textField()
+                            .validationOnInput { textField ->
+                                when {
+                                    textField.text.isBlank() -> error("版本不能为空")
+                                    !textField.text.matches(Regex("\\d+\\.\\d+.*")) -> 
+                                        warning("建议使用语义化版本号（例如：1.0.0）")
+                                    else -> null
+                                }
+                            }
                             .apply {
                                 component.text = property.version
-                                component.columns = 35
-                                component.toolTipText = "Semantic version (e.g., 1.0.0, 2.1.3-SNAPSHOT)"
+                                component.columns = 20
+                                component.toolTipText = "插件的语义化版本\n" +
+                                                       "示例：1.0.0, 2.1.3-SNAPSHOT"
                             }.onChanged { property.version = it.text }
-                    }.rowComment("Initial version of your plugin")
+                    }.rowComment("<i>遵循语义化版本号：主版本.次版本.修订版本</i>")
                 }
 
-                // 添加分隔空间
-                separator()
-
-                // 模块选择区域 - 单独成组，更突出
-                group("Module Selection", indent = false) {
+                // 改进的模块选择区域
+                group("📦 TabooLib 模块", indent = false) {
                     row {
-                        text("Choose the TabooLib modules your plugin will use. Selected modules will be included in your project dependencies.")
-                            .apply {
-                                component.foreground = JBColor.GRAY
-                            }
+                        text("<div>" +
+                             "<b>选择您的插件需要的模块：</b><br/>" +
+                             "<small>" +
+                             "• 只选择您实际需要的模块以保持插件轻量化<br/>" +
+                             "• 您可以随时通过编辑 build.gradle.kts 添加更多模块<br/>" +
+                             "• 根据常用模式预选了热门模块" +
+                             "</small></div>")
                     }
+                    
                     row {
                         cell(checkModulePanel)
-                            .align(com.intellij.ui.dsl.builder.AlignX.FILL)
+                            .align(AlignX.FILL)
+                            .apply {
+                                // 移除边框，保持干净的外观
+                                component.border = JBUI.Borders.empty(10)
+                            }
                     }
                 }
-
             }
         }
 
-        // 设置主面板的最大尺寸以防止对话框过高
-        mainPanel.maximumSize = Dimension(Int.MAX_VALUE, 750)
+        // 设置更合理的尺寸，确保可以滚动
+        mainPanel.preferredSize = Dimension(900, 450)
+        mainPanel.maximumSize = Dimension(Int.MAX_VALUE, 450)
 
-        return mainPanel
+        // 包装在滚动面板中
+        val scrollPane = JBScrollPane(mainPanel).apply {
+            verticalScrollBarPolicy = ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+            horizontalScrollBarPolicy = ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+            border = JBUI.Borders.empty()
+            preferredSize = Dimension(900, 600)
+        }
+
+        return scrollPane
     }
 
     private val doPreviousActionMethod: Method by lazy {

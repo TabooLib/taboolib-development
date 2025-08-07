@@ -1,9 +1,8 @@
 package org.tabooproject.development.component
 
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.observable.util.whenSizeChanged
 import com.intellij.openapi.util.Disposer
-import com.intellij.ui.components.JBList
+import com.intellij.ui.JBColor
 import com.intellij.ui.components.JBPanel
 import com.intellij.ui.components.JBScrollPane
 import com.intellij.ui.dsl.builder.panel
@@ -11,8 +10,6 @@ import com.intellij.util.ui.JBUI
 import org.tabooproject.development.step.Module
 import java.awt.BorderLayout
 import java.awt.Dimension
-import javax.swing.DefaultListModel
-import javax.swing.JPanel
 
 /**
  * 模块选择面板，提供复选框树形结构和已选模块列表显示
@@ -39,61 +36,92 @@ class CheckModulePanel(
         Disposer.register(this, displayModuleList as Disposable)
         
         layout = BorderLayout()
-        preferredSize = Dimension(800, 480) // 增加高度，充分利用空间
+        preferredSize = Dimension(860, 600)
         
-        // 创建美观的边框和标题
+        // 创建更现代化的左侧面板
         val leftPanel = panel {
-            group("Available Modules", indent = false) {
+            group("🔍 可用模块", indent = false) {
+                row {
+                    text("<small>" +
+                         "浏览并选择您项目的 TabooLib 模块" +
+                         "</small>")
+                        .apply {
+                            component.border = JBUI.Borders.empty(0, 0, 8, 0)
+                        }
+                }
                 row {
                     scrollCell(checkModuleList)
                         .apply {
-                            component.preferredSize = Dimension(380, 410) // 增加高度
+                            component.preferredSize = Dimension(420, 340)
+                            component.border = JBUI.Borders.compound(
+                                JBUI.Borders.customLine(JBColor.border()),
+                                JBUI.Borders.empty(5)
+                            )
                         }
                 }
             }
         }.apply {
-            border = JBUI.Borders.empty(10, 10, 5, 5)
+            border = JBUI.Borders.empty(15, 15, 10, 10) // 统一边距
+            background = JBColor.namedColor("Panel.background", JBColor.WHITE)
         }
         
+        // 创建更优雅的右侧面板
         val rightPanel = panel {
-            group("Selected Modules", indent = false) {
+            group("✅ 已选模块", indent = false) {
+                row {
+                    text("<small>" +
+                         "您选择的模块 - 点击可移除" +
+                         "</small>")
+                        .apply {
+                            component.border = JBUI.Borders.empty(0, 0, 8, 0)
+                        }
+                }
                 row {
                     scrollCell(displayModuleList)
                         .apply {
-                            component.preferredSize = Dimension(350, 410) // 增加高度与左侧对齐
+                            component.preferredSize = Dimension(380, 340)
+                            component.border = JBUI.Borders.compound(
+                                JBUI.Borders.customLine(JBColor.border()),
+                                JBUI.Borders.empty(3)
+                            )
+                            // 设置特殊的背景色表示已选状态
+                            component.background = JBColor.namedColor(
+                                "TextField.selectionBackground",
+                                JBColor(0xf5f5f5, 0x3c3f41)
+                            ).brighter()
                         }
                 }
             }
         }.apply {
-            border = JBUI.Borders.empty(10, 5, 5, 10)
+            border = JBUI.Borders.empty(15, 15, 10, 10) // 统一边距，与左侧保持一致
+            background = JBColor.namedColor("Panel.background", JBColor.WHITE)
         }
         
         add(leftPanel, BorderLayout.CENTER)  // 左侧占据主要空间
         add(rightPanel, BorderLayout.EAST)   // 右侧固定宽度
         
-        // 设置模块选择回调，连接到外部回调
+        // 设置模块选择回调
         checkModuleList.onModuleSelectionChanged = { modules ->
             displayModuleList.setModules(modules)
             onModuleSelectionChanged?.invoke(modules)
         }
         
-        // 设置右侧列表的点击取消选中回调
+        // 设置右侧列表的点击移除回调
         displayModuleList.onModuleRemoved = { module ->
             println("DisplayModuleList: 尝试移除模块 ${module.name} (${module.id})")
-            // 在左侧树中取消选中该模块，不重新设置整个列表
             checkModuleList.unselectModule(module.id)
         }
         
-        // 优化滚动条设置
+        // 优化滚动条样式
         checkModuleScrollPane.apply {
             verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED
-            horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+            horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER // 禁用水平滚动
             border = JBUI.Borders.empty()
         }
         
         displayModuleScrollPane.apply {
             verticalScrollBarPolicy = JBScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED  
-            horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED
+            horizontalScrollBarPolicy = JBScrollPane.HORIZONTAL_SCROLLBAR_NEVER // 禁用水平滚动
             border = JBUI.Borders.empty()
         }
     }

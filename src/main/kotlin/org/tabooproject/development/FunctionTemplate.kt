@@ -2,7 +2,6 @@ package org.tabooproject.development
 
 import com.google.gson.JsonParser
 import org.jetbrains.kotlin.idea.base.util.getString
-import org.jetbrains.kotlin.idea.gradleTooling.get
 import org.tabooproject.development.step.ConfigurationPropertiesStep
 import org.tabooproject.development.step.OptionalPropertiesStep
 import java.io.IOException
