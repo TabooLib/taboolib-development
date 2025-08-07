@@ -31,6 +31,12 @@ class LangFoldingOptionsProvider :
             // 设置变更后刷新折叠
             LangFoldingSettingsListener.refreshAllEditors()
         }
+        checkBox(
+            "Highlight valid language keys",
+            LangFoldingSettings.instance::showValidLangKeyHighlight,
+        ) {
+            LangFoldingSettings.instance.showValidLangKeyHighlight = it
+        }
     }
 }
 
@@ -42,7 +48,8 @@ class LangFoldingSettings : PersistentStateComponent<LangFoldingSettings.State> 
 
     data class State(
         var shouldFoldTranslations: Boolean = true,
-        var showColorCodes: Boolean = false
+        var showColorCodes: Boolean = false,
+        var showValidLangKeyHighlight: Boolean = false
     )
 
     private var state = State()
@@ -66,6 +73,12 @@ class LangFoldingSettings : PersistentStateComponent<LangFoldingSettings.State> 
         get() = state.showColorCodes
         set(value) {
             state.showColorCodes = value
+        }
+
+    var showValidLangKeyHighlight: Boolean
+        get() = state.showValidLangKeyHighlight
+        set(value) {
+            state.showValidLangKeyHighlight = value
         }
 
     companion object {
