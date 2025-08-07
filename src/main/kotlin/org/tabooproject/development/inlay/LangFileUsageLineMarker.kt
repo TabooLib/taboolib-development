@@ -41,6 +41,7 @@ class LangFileUsageLineMarker : RelatedItemLineMarkerProvider() {
             // 未使用的键，显示警告图标
             val builder = NavigationGutterIconBuilder
                 .create(AllIcons.General.InspectionsEye)
+                .setTargets(emptyList<PsiElement>())
                 .setTooltipText("语言键 '$langKey' 未被使用")
                 .setPopupTitle("未使用的语言键")
                 .setEmptyPopupText("此语言键在项目中未被使用")
