@@ -38,7 +38,7 @@ class EditorDocumentListener(private val project: Project) : Disposable {
             val document = event.document
             val file = FileDocumentManager.getInstance().getFile(document)
 
-            if (file != null && (isLanguageFile(file) || isKotlinFile(file))) {
+            if (file != null && isLanguageFile(file)) {
                 // 防抖：避免频繁刷新
                 val currentTime = System.currentTimeMillis()
                 if (currentTime - lastRefreshTime < refreshDebounceMs) {
@@ -49,11 +49,7 @@ class EditorDocumentListener(private val project: Project) : Disposable {
                 // 延迟刷新以合并连续的修改
                 ApplicationManager.getApplication().invokeLater({
                     if (!project.isDisposed) {
-                        if (isLanguageFile(file)) {
-                            refreshEditorsForFile(file)
-                        } else if (isKotlinFile(file)) {
-                            refreshUsageCache()
-                        }
+                        refreshEditorsForFile(file)
                     }
                 }, project.disposed)
             }
@@ -81,7 +77,7 @@ class EditorDocumentListener(private val project: Project) : Disposable {
         val openFiles = fileEditorManager.openFiles
 
         for (file in openFiles) {
-            if (isLanguageFile(file) || isKotlinFile(file)) {
+            if (isLanguageFile(file)) {
                 val document = FileDocumentManager.getInstance().getDocument(file)
                 if (document != null) {
                     registerDocument(document)
@@ -190,40 +186,6 @@ class EditorDocumentListener(private val project: Project) : Disposable {
      */
     private fun isLanguageFile(file: VirtualFile): Boolean {
         return LangFiles.isLangFile(file)
-    }
-
-    /**
-     * 检查文件是否为Kotlin文件
-     *
-     * @param file 要检查的文件
-     * @return 如果是Kotlin文件返回 true
-     */
-    private fun isKotlinFile(file: VirtualFile): Boolean {
-        return file.name.endsWith(".kt")
-    }
-
-    /**
-     * 刷新使用缓存并更新相关编辑器
-     */
-    private fun refreshUsageCache() {
-        // 清除语言使用分析缓存
-        LangUsageAnalyzer.clearCache(project)
-        
-        // 更新编辑器通知
-        com.intellij.ui.EditorNotifications.updateAll()
-        
-        // 重新分析所有语言文件以更新未使用标记
-        val fileEditorManager = FileEditorManager.getInstance(project)
-        val psiManager = PsiManager.getInstance(project)
-        val daemonCodeAnalyzer = com.intellij.codeInsight.daemon.DaemonCodeAnalyzer.getInstance(project)
-        
-        // 查找所有语言文件并触发重新分析
-        LangIndex.findProjectLangFiles(project).forEach { langFile ->
-            val psiFile = psiManager.findFile(langFile)
-            if (psiFile != null) {
-                daemonCodeAnalyzer.restart(psiFile)
-            }
-        }
     }
 
     override fun dispose() {

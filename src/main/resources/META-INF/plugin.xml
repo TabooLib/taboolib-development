@@ -65,22 +65,11 @@
                          hasStaticDescription="false"
                          implementationClass="org.tabooproject.development.inspection.DatabaseWorkspaceInspection"/>
 
-        <localInspection displayName="语言键缺失检查"
-                         language="kotlin"
-                         groupName="TabooLib"
-                         enabledByDefault="true"
-                         level="WARNING"
-                         hasStaticDescription="false"
-                         implementationClass="org.tabooproject.development.inspection.MissingLangKeyInspection"/>
-
         <completion.contributor language="kotlin"
                                 implementationClass="org.tabooproject.development.completion.LogFuncCompletion"/>
         <completion.contributor language="kotlin"
                                 implementationClass="org.tabooproject.development.completion.ReflectMethodReflectCompletion"/>
         <completion.confidence language="kotlin" implementationClass="org.tabooproject.development.completion.TabooLiteralConfidence" order="before kotlinSkipAutopopupInStrings"/>
-
-        <!-- 语言键引用贡献器 -->
-        <psi.referenceContributor implementation="org.tabooproject.development.inlay.LangKeyReferenceContributor"/>
 
         <!-- TabooLib 语言文件支持 -->
         <!-- 语言文件折叠功能 -->
@@ -107,10 +96,6 @@
         <!-- 边栏显示翻译内容 -->
         <codeInsight.lineMarkerProvider language="kotlin" 
                                        implementationClass="org.tabooproject.development.inlay.MinecraftLangGutterProvider"/>
-                                       
-        <!-- 语言文件使用情况行标记 -->
-        <codeInsight.lineMarkerProvider language="yaml" 
-                                       implementationClass="org.tabooproject.development.inlay.LangFileUsageLineMarker"/>
         
         
         
@@ -119,12 +104,6 @@
         
         <!-- 语言文件颜色注解器 -->
         <annotator language="kotlin" implementationClass="org.tabooproject.development.inlay.LangFoldingColorAnnotator"/>
-        
-        <!-- 语言键验证注解器 -->
-        <annotator language="kotlin" implementationClass="org.tabooproject.development.inlay.LangKeyValidationAnnotator"/>
-        
-        <!-- 语言文件未使用键注解器 -->
-        <annotator language="yaml" implementationClass="org.tabooproject.development.inlay.LangFileUnusedAnnotator"/>
         
         <!-- 颜色设置页面 -->
         <colorSettingsPage implementation="org.tabooproject.development.inlay.LangColorSettingsPage"/>
