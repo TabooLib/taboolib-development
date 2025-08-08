@@ -5,7 +5,6 @@ import com.jetbrains.rd.util.getLogger
 import com.jetbrains.rd.util.info
 import groovy.util.logging.Slf4j
 import kotlinx.serialization.json.*
-import org.jetbrains.annotations.NonNls
 import org.tabooproject.development.readFromUrl
 import org.tabooproject.development.step.Module
 import java.io.IOException

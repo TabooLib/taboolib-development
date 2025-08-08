@@ -48,61 +48,85 @@ class BasicConfigurationStep(val context: WizardContext) : ModuleWizardStep(), D
 
     override fun getComponent(): JComponent {
         return panel {
-            group("Project Configuration", indent = false) {
-                row("Project name:") {
-                    textField()
+            indent {
+                // 添加向导步骤指示器
+                row {
+                    text("<h3>第 1 步，共 3 步：项目设置</h3>" +
+                         "<p>配置项目基本信息和下载设置</p>")
                         .apply {
-                            component.text = property.projectName
-                            component.columns = 35
-                            component.toolTipText = "Enter your project name"
-                        }.onChanged {
-                            property.projectName = it.text
-                            // 同步更新到 WizardContext
-                            context.projectName = it.text
+                            component.border = com.intellij.util.ui.JBUI.Borders.empty(0, 0, 20, 0)
                         }
-                }.rowComment("The name of your TabooLib project")
-            }
+                }
+                
+                // 项目配置组
+                group("📁 项目信息", indent = false) {
+                    row("项目名称:") {
+                        textField()
+                            .focused()
+                            .validationOnInput { textField ->
+                                when {
+                                    textField.text.isBlank() -> error("项目名称不能为空")
+                                    !textField.text.matches(Regex("[a-zA-Z0-9_-]+")) -> 
+                                        error("项目名称只能包含字母、数字、下划线和连字符")
+                                    else -> null
+                                }
+                            }
+                            .apply {
+                                component.text = property.projectName
+                                component.columns = 40
+                                component.toolTipText = "输入您的项目名称\n示例：MyAwesomePlugin"
+                            }.onChanged {
+                                property.projectName = it.text
+                                context.projectName = it.text
+                            }
+                    }.rowComment("<i>为您的 TabooLib 项目选择一个描述性名称</i>")
+                }
 
-            separator()
+                // 镜像设置组 - 使用更友好的图标和描述
+                group("🌐 下载镜像", indent = false) {
+                    row {
+                        text("<small>" +
+                             "选择距离您更近的镜像以获得更快的下载速度" +
+                             "</small>")
+                            .apply {
+                                component.border = com.intellij.util.ui.JBUI.Borders.empty(0, 0, 10, 0)
+                            }
+                    }
+                    
+                    row("模块镜像:") {
+                        comboBox(ResourceLoader.getAvailableMirrors().keys)
+                            .apply {
+                                modulesMirrorComboBox = component
+                                component.columns(30)
+                                component.toolTipText = "选择下载模块信息的镜像\n推荐：使用地理位置最近的镜像"
 
-            group("Mirror Settings", indent = false) {
-                row("Modules mirror:") {
-                    comboBox(ResourceLoader.getAvailableMirrors().keys)
-                        .apply {
-                            modulesMirrorComboBox = component
-                            component.columns(25)
-                            component.toolTipText = "Choose the mirror for downloading module information"
+                                val savedMirror = settings.getDefaultModulesMirror()
+                                val mirrorKeys = ResourceLoader.getAvailableMirrors().keys.toList()
+                                val selectedIndex = mirrorKeys.indexOf(savedMirror).takeIf { it >= 0 } ?: 0
+                                component.selectedIndex = selectedIndex
+                            }.onChanged {
+                                val mirrorKey = it.selectedItem as String
+                                property.modulesMirror = mirrorKey
+                                ResourceLoader.setMirror(mirrorKey)
+                                settings.setDefaultModulesMirror(mirrorKey)
+                            }
+                    }.rowComment("<i>TabooLib 模块信息和描述的下载镜像</i>")
 
-                            // 设置当前选中的镜像
-                            val savedMirror = settings.getDefaultModulesMirror()
-                            val mirrorKeys = ResourceLoader.getAvailableMirrors().keys.toList()
-                            val selectedIndex = mirrorKeys.indexOf(savedMirror).takeIf { it >= 0 } ?: 0
-                            component.selectedIndex = selectedIndex
-                        }.onChanged {
-                            val mirrorKey = it.selectedItem as String
-                            property.modulesMirror = mirrorKey
-                            ResourceLoader.setMirror(mirrorKey)
-                            // 保存到用户设置中
-                            settings.setDefaultModulesMirror(mirrorKey)
-                        }
-                }.rowComment("Select mirror for module data download - place before module selection for better access")
+                    row("模板镜像:") {
+                        comboBox(TEMPLATE_DOWNLOAD_MIRROR.keys)
+                            .apply {
+                                component.columns(30)
+                                component.toolTipText = "选择下载项目模板的镜像\nGitHub：最新功能，可能较慢\nTabooProject：稳定版本，在中国更快"
 
-                row("Template mirror:") {
-                    comboBox(TEMPLATE_DOWNLOAD_MIRROR.keys)
-                        .apply {
-                            component.selectedIndex = 0
-                            component.columns(25)
-                            component.toolTipText = "Choose the mirror for downloading project template"
-
-                            // 设置保存的模板镜像
-                            val savedTemplateMirror = settings.getDefaultTemplateMirror()
-                            val templateKeys = TEMPLATE_DOWNLOAD_MIRROR.keys.toList()
-                            val selectedIndex = templateKeys.indexOf(savedTemplateMirror).takeIf { it >= 0 } ?: 0
-                            component.selectedIndex = selectedIndex
-                        }.onChanged {
-                            property.templateMirror = it.selectedItem as String
-                        }
-                }.rowComment("Select mirror for project template download")
+                                val savedTemplateMirror = settings.getDefaultTemplateMirror()
+                                val templateKeys = TEMPLATE_DOWNLOAD_MIRROR.keys.toList()
+                                val selectedIndex = templateKeys.indexOf(savedTemplateMirror).takeIf { it >= 0 } ?: 0
+                                component.selectedIndex = selectedIndex
+                            }.onChanged {
+                                property.templateMirror = it.selectedItem as String
+                            }
+                    }.rowComment("<i>项目模板和构建文件的下载镜像</i>")
+                }
             }
         }
     }

@@ -8,7 +8,8 @@ import com.intellij.psi.PsiElement
 import org.jetbrains.kotlin.psi.KtCallExpression
 import org.jetbrains.kotlin.psi.KtStringTemplateExpression
 import org.tabooproject.development.isSendLangCall
-import java.awt.*
+import java.awt.Color
+import java.awt.RenderingHints
 import java.awt.image.BufferedImage
 import javax.swing.Icon
 import javax.swing.ImageIcon
