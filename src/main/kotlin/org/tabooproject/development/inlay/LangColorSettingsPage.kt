@@ -65,6 +65,11 @@ class LangColorSettingsPage : ColorSettingsPage {
             }
         }
         
+        // 添加语言键验证相关的颜色设置
+        attributes.add(AttributesDescriptor("TabooLib Lang: Missing Key", LangKeyValidationAnnotator.MISSING_LANG_KEY_ATTRIBUTES))
+        attributes.add(AttributesDescriptor("TabooLib Lang: Valid Key", LangKeyValidationAnnotator.VALID_LANG_KEY_ATTRIBUTES))
+        attributes.add(AttributesDescriptor("TabooLib Lang: Unused Key", LangFileUnusedAnnotator.UNUSED_LANG_KEY_ATTRIBUTES))
+        
         return attributes.toTypedArray()
     }
 
