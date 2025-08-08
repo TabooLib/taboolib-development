@@ -201,7 +201,6 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
                              "<small>" +
                              "• 只选择您实际需要的模块以保持插件轻量化<br/>" +
                              "• 您可以随时通过编辑 build.gradle.kts 添加更多模块<br/>" +
-                             "• 根据常用模式预选了热门模块" +
                              "</small></div>")
                     }
                     
@@ -217,9 +216,9 @@ class ConfigurationPropertiesStep(val context: WizardContext) : ModuleWizardStep
             }
         }
 
-        // 设置更合理的尺寸，确保可以滚动
-        mainPanel.preferredSize = Dimension(900, 450)
-        mainPanel.maximumSize = Dimension(Int.MAX_VALUE, 450)
+        // 移除固定尺寸设置，允许内容自然扩展以支持滚动
+        mainPanel.preferredSize = Dimension(900, mainPanel.preferredSize.height)
+        mainPanel.maximumSize = Dimension(Int.MAX_VALUE, Int.MAX_VALUE)
 
         // 包装在滚动面板中
         val scrollPane = JBScrollPane(mainPanel).apply {
