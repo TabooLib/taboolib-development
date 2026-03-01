@@ -77,7 +77,10 @@ object Template {
         val finalContent = StringWriter().use { writer ->
             Template(templateFile.node, StringReader(String(contentBytes, StandardCharsets.UTF_8)), cfg).process(buildProperty, writer)
             writer.toString()
-        }
+        }.replace(
+            "id(\"io.izzel.taboolib\") version \"2.0.27\"",
+            "id(\"io.izzel.taboolib\") version \"${FunctionTemplate.tabooGradleLatestVersion}\""
+        )
 
         val replacedPath = path.replace(
             "io.github/username/project/ExamplePlugin",

@@ -18,7 +18,7 @@ import org.jetbrains.kotlin.idea.base.psi.kotlinFqName
 import org.jetbrains.kotlin.psi.*
 import org.jetbrains.uast.kotlin.desc
 import org.tabooproject.development.checkAndImportPackage
-import org.tabooproject.development.getPsiClass
+import org.tabooproject.development.resolveReceiverPsiClass
 
 class ReflectMethodReflectCompletion : CompletionContributor() {
 
@@ -57,12 +57,8 @@ object GetPropertyReflectCompletionProvider : CompletionProvider<CompletionParam
             val calleeExpression = currentElement.calleeExpression ?: return
             val calleeText = calleeExpression.text
 
-            if (calleeText == "getProperty") {
-                val qualifiedExpression = (PsiTreeUtil.findFirstParent(calleeExpression) {
-                    it is KtDotQualifiedExpression
-                } as? KtDotQualifiedExpression) ?: return
-
-                val clazz = qualifiedExpression.getPsiClass() ?: return
+            if (calleeText == "getProperty" || calleeText == "setProperty") {
+                val clazz = resolveReceiverPsiClass(currentElement) ?: return
 
                 val currentText =
                     parent.text.substring(0, parent.text.length - CompletionUtil.DUMMY_IDENTIFIER_TRIMMED.length)
@@ -75,8 +71,6 @@ object GetPropertyReflectCompletionProvider : CompletionProvider<CompletionParam
                 } else {
                     listOf(clazz)
                 }
-
-                println("search classes")
 
                 val fields = ArrayList<Pair<PsiField, PsiClass>>()
 
@@ -94,7 +88,9 @@ object GetPropertyReflectCompletionProvider : CompletionProvider<CompletionParam
                                 } else ""
                             }", true)
                             .withInsertHandler handler@{ context, _ ->
-                                handleInsert(context, field)
+                                if (calleeText == "getProperty") {
+                                    handleInsert(context, field)
+                                }
                             }
                     )
                 }
@@ -178,15 +174,9 @@ object InvokeMethodReflectCompletionProvider : CompletionProvider<CompletionPara
             val calleeText = calleeExpression.text
 
             if (calleeText == "invokeMethod") {
-                val qualifiedExpression = (PsiTreeUtil.findFirstParent(calleeExpression) {
-                    it is KtDotQualifiedExpression
-                } as? KtDotQualifiedExpression) ?: return
+                val clazz = resolveReceiverPsiClass(currentElement) ?: return
 
-                val clazz = qualifiedExpression.getPsiClass() ?: return
-
-                val methods = HashSet<PsiMethod>()
-                clazz.findMethods(methods)
-                methods.forEach { method ->
+                clazz.allMethods.forEach { method ->
                     result.addElement(
                         LookupElementBuilder.create(method.name)
                             .withIcon(PlatformIcons.METHOD_ICON)
@@ -257,17 +247,5 @@ object InvokeMethodReflectCompletionProvider : CompletionProvider<CompletionPara
                 generics.replace(factory.createTypeArguments("<${shortName}>"))
             }
         }
-    }
-
-    private fun PsiClass.findMethods(methods: MutableSet<PsiMethod>): MutableSet<PsiMethod> {
-        this.methods.forEach { methods += it }
-        this.interfaces.forEach { interfaceClass ->
-            interfaceClass.findMethods(methods)
-        }
-        this.supers.forEach { superClass ->
-            superClass.findMethods(methods)
-        }
-
-        return methods
     }
 }

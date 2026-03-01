@@ -24,9 +24,10 @@
     ]]></description>
 
     <change-notes><![CDATA[
-        <strong>v1.41</strong>
+        <strong>v1.5</strong>
         <ul>
-            <li>Full compatibility with Kotlin K2 compiler</li>
+            <li>Add error message for incorrect calls to the taboolib API</li>
+            <li>Automatic update taboo gradle version</li>
             <li>Refactor new project wizard setup</li>
             <li>Added TabooLib i18n support</li>
         </ul>
@@ -73,11 +74,25 @@
                          hasStaticDescription="false"
                          implementationClass="org.tabooproject.development.inspection.MissingLangKeyInspection"/>
 
+        <localInspection displayName="调用非taboolib api"
+                         language="kotlin"
+                         groupName="TabooLib"
+                         enabledByDefault="true"
+                         level="ERROR"
+                         hasStaticDescription="false"
+                         implementationClass="org.tabooproject.development.inspection.NonTabooLibApiInspection"/>
+
         <completion.contributor language="kotlin"
                                 implementationClass="org.tabooproject.development.completion.LogFuncCompletion"/>
         <completion.contributor language="kotlin"
                                 implementationClass="org.tabooproject.development.completion.ReflectMethodReflectCompletion"/>
         <completion.confidence language="kotlin" implementationClass="org.tabooproject.development.completion.TabooLiteralConfidence" order="before kotlinSkipAutopopupInStrings"/>
+
+        <!-- TabooLib 补全排序：优先原始 taboolib API -->
+        <weigher key="completion"
+                 implementationClass="org.tabooproject.development.completion.TabooLibCompletionWeigher"
+                 id="taboolibCompletionWeigher"
+                 order="before stats"/>
 
         <!-- 语言键引用贡献器 -->
         <psi.referenceContributor implementation="org.tabooproject.development.inlay.LangKeyReferenceContributor"/>

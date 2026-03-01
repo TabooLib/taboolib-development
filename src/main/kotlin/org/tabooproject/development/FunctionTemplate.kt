@@ -49,7 +49,25 @@ object FunctionTemplate {
         }
     }
 
+    private const val TABOO_GRADLE_PLUGIN_DESC_URL = "https://api.github.com/repos/taboolib/taboolib-gradle-plugin/releases/latest"
     private const val TABOO_GRADLE_PROPERTIES_FILE_URL = "https://api.github.com/repos/taboolib/taboolib/releases/latest"
+
+    val tabooGradleLatestVersion: String
+        get() {
+            val client = createOkHttpClientWithSystemProxy {
+                connectTimeout(10, TimeUnit.SECONDS)
+                readTimeout(10, TimeUnit.SECONDS)
+            }
+
+            val response = client
+                .newCall(getRequest(TABOO_GRADLE_PLUGIN_DESC_URL))
+                .execute()
+                .takeIf { it.isSuccessful } ?: throw IOException("Failed to download file")
+
+            return response.body?.byteStream()?.bufferedReader(StandardCharsets.UTF_8)?.readText()?.let {
+                JsonParser.parseString(it).asJsonObject.getString("tag_name")
+            } ?: throw IOException("Response body is null")
+        }
 
     private val tabooLatestVersion: String
         get() {

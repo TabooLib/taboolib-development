@@ -5,6 +5,7 @@ import com.intellij.openapi.roots.OrderEnumerator
 import com.intellij.psi.*
 import com.intellij.psi.search.GlobalSearchScope
 import com.intellij.psi.util.PsiTreeUtil
+import com.intellij.psi.util.PsiTypesUtil
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import org.jetbrains.kotlin.name.FqName
@@ -193,4 +194,72 @@ fun KtDotQualifiedExpression.getPsiClass(): PsiClass? {
         .findClass(fqName ?: return null, GlobalSearchScope.allScope(project)) ?: run {
         return null
     }
+}
+
+/**
+ * 解析反射调用（invokeMethod / getProperty / setProperty）的接收者类型。
+ *
+ * 例如 `player.invokeMethod(...)` → 解析 `player` 的类型 → 返回对应的 PsiClass。
+ * 仅使用标准 PSI 引用解析，K1/K2 均兼容。
+ */
+fun resolveReceiverPsiClass(callExpression: KtCallExpression): PsiClass? {
+    val dotQualified = callExpression.parent as? KtDotQualifiedExpression ?: return null
+    val receiver = dotQualified.receiverExpression
+
+    return when (receiver) {
+        is KtThisExpression -> {
+            val containingClass = PsiTreeUtil.getParentOfType(receiver, KtClassOrObject::class.java)
+            containingClass?.let {
+                JavaPsiFacade.getInstance(it.project)
+                    .findClass(it.fqName?.asString() ?: return null, GlobalSearchScope.allScope(it.project))
+            }
+        }
+        is KtDotQualifiedExpression -> {
+            // 链式调用：event.player.invokeMethod → 解析 selector "player" 的引用
+            val selector = receiver.selectorExpression
+            val resolved = (selector as? KtReferenceExpression)?.references
+                ?.firstNotNullOfOrNull { it.resolve() }
+            resolved?.let { declarationToPsiClass(it) }
+                ?: receiver.getPsiClass() // 兜底：尝试 FQN 文本解析
+        }
+        is KtCallExpression -> {
+            // getPlayer().invokeMethod → 解析被调函数的返回类型
+            val callee = receiver.calleeExpression as? KtReferenceExpression
+            val resolved = callee?.references?.firstNotNullOfOrNull { it.resolve() }
+            resolved?.let { declarationToPsiClass(it) }
+        }
+        is KtReferenceExpression -> {
+            val resolved = receiver.references.firstNotNullOfOrNull { it.resolve() }
+            resolved?.let { declarationToPsiClass(it) }
+        }
+        else -> {
+            // 兜底：尝试 FQN 文本解析
+            dotQualified.getPsiClass()
+        }
+    }
+}
+
+/**
+ * 将声明（变量、参数、字段、方法等）转换为其类型对应的 PsiClass。
+ */
+private fun declarationToPsiClass(declaration: PsiElement): PsiClass? {
+    return when (declaration) {
+        is PsiField -> PsiTypesUtil.getPsiClass(declaration.type)
+        is PsiMethod -> declaration.returnType?.let { PsiTypesUtil.getPsiClass(it) }
+        is KtProperty -> ktTypeRefToPsiClass(declaration.typeReference, declaration.project)
+        is KtParameter -> ktTypeRefToPsiClass(declaration.typeReference, declaration.project)
+        is KtFunction -> ktTypeRefToPsiClass(declaration.typeReference, declaration.project)
+        is PsiClass -> declaration
+        else -> null
+    }
+}
+
+/**
+ * 将 Kotlin 类型引用（如 `Player`）解析为 PsiClass。
+ */
+private fun ktTypeRefToPsiClass(typeRef: KtTypeReference?, project: com.intellij.openapi.project.Project): PsiClass? {
+    if (typeRef == null) return null
+    val typeElement = typeRef.typeElement as? KtUserType ?: return null
+    val resolved = typeElement.referenceExpression?.references?.firstNotNullOfOrNull { it.resolve() }
+    return resolved as? PsiClass
 }
