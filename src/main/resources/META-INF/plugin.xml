@@ -89,10 +89,10 @@
         <completion.confidence language="kotlin" implementationClass="org.tabooproject.development.completion.TabooLiteralConfidence" order="before kotlinSkipAutopopupInStrings"/>
 
         <!-- TabooLib 补全排序：优先原始 taboolib API -->
-        <weigher key="completion"
-                 implementationClass="org.tabooproject.development.completion.TabooLibCompletionWeigher"
-                 id="taboolibCompletionWeigher"
-                 order="before stats"/>
+<!--        <weigher key="completion"-->
+<!--                 implementationClass="org.tabooproject.development.completion.TabooLibCompletionWeigher"-->
+<!--                 id="taboolibCompletionWeigher"-->
+<!--                 order="before stats"/>-->
 
         <!-- 语言键引用贡献器 -->
         <psi.referenceContributor implementation="org.tabooproject.development.inlay.LangKeyReferenceContributor"/>
